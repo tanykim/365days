@@ -1,0 +1,22 @@
+{
+  "name": "365days",
+  "version": "0.0.0",
+  "dependencies": {
+    "angular": "^1.4.0",
+    "angular-animate": "^1.4.0",
+    "angular-bootstrap": "~1.1.1",
+    "angular-leaflet-directive": "~0.10.0",
+    "angular-moment": "~0.10.3",
+    "angular-route": "^1.4.0",
+    "angular-underscore-module": "~1.0.3",
+    "d3": "~3.5.14",
+    "leaflet": "~0.7.7",
+    "moment": "~2.11.1",
+    "underscore": "~1.8.3"
+  },
+  "devDependencies": {
+    "angular-mocks": "^1.4.0"
+  },
+  "appPath": "app",
+  "moduleName": "365daysApp"
+}
