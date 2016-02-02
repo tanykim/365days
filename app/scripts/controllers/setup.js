@@ -20,7 +20,8 @@ angular.module('365daysApp').controller('SetupCtrl', [
 
         var data = null; //JSON object
         var places = {}; //selected home and work IDs
-
+        $scope.isLocationEditCollapsed = true;
+        $scope.newLocationNames = [];
         //map
         $scope.map = { center: { lat: 37, lng: -122, zoom: 10 } };
 
@@ -62,7 +63,8 @@ angular.module('365daysApp').controller('SetupCtrl', [
             var selectedIds = _.flatten(_.values(places));
             $scope.candidates[type] = analyzer.getPlaces(type, data, selectedIds);
             console.log(type, $scope.candidates[type]);
-            $scope.selected[type]  = _.map(_.range($scope.candidates[type].length), function (i) {
+            var count = $scope.candidates[type].length;
+            $scope.selected[type]  = _.map(_.range(count), function (i) {
                 return i < 3 ? true : false; //by default choose up to 3 places
             });
 
@@ -127,6 +129,16 @@ angular.module('365daysApp').controller('SetupCtrl', [
                 lng: $scope.map.markers[i].lng,
                 zoom: 12,
             };
+        };
+        //update location name
+        $scope.updateLocationName = function (i, type) {
+            $scope.candidates[type][i].name = $scope.newLocationNames[i];
+            $scope.newLocationNames[i] = '';
+            // $scope.isLocationEditCollapsed = true;
+            //console.log($scope.candidates[type], $scope.isLocationEditCollapsed);
+        };
+        $scope.clearLocationName = function (i) {
+            $scope.newLocationNames[i] = '';
         };
 
         //testing

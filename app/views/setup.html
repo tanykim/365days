@@ -28,6 +28,11 @@
                     <input type="checkbox" ng-model="selected[step.label][$index]">
                     {{ h.name }} / {{ h.duration }} / {{ h.count }} days
                     <span><a ng-click="recenterMap([$index])">map</a></span>
+                    <span><a ng-click="isLocationEditCollapsed = !isLocationEditCollapsed">edit</a></span>
+                    <div ng-hide="isLocationEditCollapsed">
+                        <input type="text" class="form-control" ng-model="newLocationNames[$index]" placeholder=" Enter a new name" ng-click="clearLocationName([$index])">
+                        <button type="button" class="btn btn-primary" ng-click="updateLocationName([$index], [step.label]); isLocationEditCollapsed = true">Edit</button>
+                    </div>
                 </li>
             </ol>
             <p><a class="btn btn-success" ng-click="completeStep($parent.$index)">Done <span class="glyphicon glyphicon-ok"></span></a></p>
