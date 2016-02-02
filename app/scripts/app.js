@@ -16,7 +16,7 @@ angular
     'underscore',
     'angularMoment',
     'leaflet-directive'
-    ])
+])
 .config(function ($routeProvider) {
     $routeProvider
     .when('/', {
@@ -33,3 +33,4 @@ angular
         redirectTo: '/'
     });
 });
+

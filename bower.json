@@ -11,6 +11,7 @@
     "angular-underscore-module": "~1.0.3",
     "d3": "~3.5.14",
     "leaflet": "~0.7.7",
+    "Leaflet.extra-markers": "~1.0.3",
     "moment": "~2.11.1",
     "underscore": "~1.8.3"
   },

@@ -33,6 +33,7 @@ module.exports = function(config) {
       'bower_components/underscore/underscore.js',
       'bower_components/angular-underscore-module/angular-underscore-module.js',
       'bower_components/d3/d3.js',
+      'bower_components/Leaflet.extra-markers/src/leaflet.extra-markers.js',
       'bower_components/angular-mocks/angular-mocks.js',
       // endbower
       "app/scripts/**/*.js",

@@ -2,7 +2,7 @@
     <div ng-repeat="step in steps" ng-class="step.style" class="step">
 
         <div class="title-wrapper">
-            <h1 class="title"> Step{{ $index + 1 }}. Select {{ step.title }} </h1>
+            <h1 class="title"> Step{{ $index + 1 }}. {{ step.title }} </h1>
             <div ng-if="step.style=='done'" class="result">
                 <span class="glyphicon glyphicon-ok"></span>
                 {{ step.result }}
@@ -23,16 +23,17 @@
 
         <!-- step >0. select places -->
         <div ng-if="$index > 0" class="content">
-            <ul>
-                <li ng-repeat="h in candidates[step.title]">
-                    <input type="checkbox" ng-model="selected[step.title][$index]">
-                    {{ h.name }} / {{ h.duration }} / {{ h.count }}
+            <ol>
+                <li ng-repeat="h in candidates[step.label]">
+                    <input type="checkbox" ng-model="selected[step.label][$index]">
+                    {{ h.name }} / {{ h.duration }} / {{ h.count }} days
+                    <span><a ng-click="recenterMap([$index])">map</a></span>
                 </li>
-            </ul>
+            </ol>
             <p><a class="btn btn-success" ng-click="completeStep($parent.$index)">Done <span class="glyphicon glyphicon-ok"></span></a></p>
         </div>
     </div>
 </div>
-<leaflet ng-if="completedStepIndex > 0" lf-center="center" height="600px" width="40%" class="map"></leaflet>
 
-
+<!-- map -->
+<leaflet ng-if="completedStepIndex > 0" markers="map.markers" lf-center="map.center" class="map"></leaflet>

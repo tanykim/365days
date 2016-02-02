@@ -8,7 +8,7 @@ version 0.14.0.
 ## Prepare for data
 The data source is acquired through a smart phone app, Moves. You need to export yoru data first from your app.
 
-Go to `settings > Account > Export Data`
+Sign in with your Moves account at [https://account.moves-app.com](https://account.moves-app.com)
 
 Once you download your data, extract json.zip. Copy folder `json/yearly/places` folder under `app/data` ('places' folder is locates at the same level of placeholder.txt.)    
 

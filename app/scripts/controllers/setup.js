@@ -6,22 +6,23 @@ angular.module('365daysApp').controller('SetupCtrl', [
     'moment', '_', '$scope', '$http', 'analyzer',
     function (moment, _, $scope, $http, analyzer) {
 
+        //set up process variables
         $scope.completedStepIndex = 0;
-        // $scope.steps = [ 'year', 'home', 'work', 'others'];
-        // $scope.done = ['', 'inactive', 'inactive', 'inactive'];
         $scope.steps = [
-            { title : 'year', style: '', result: '' },
-            { title : 'home', style: 'inactive', result: '' },
-            { title : 'work', style: 'inactive', result: '' },
-            { title : 'others', style: 'inactive', result: '' }
+            { label : 'year', title: 'Select a year', style: '', result: '' },
+            { label : 'home', title: 'Select home(s)', style: 'inactive', result: '' },
+            { label : 'work', title: 'Select work(s)', style: 'inactive', result: '' },
+            { label : 'others', title: 'Select other places', style: 'inactive', result: '' }
         ];
-
         $scope.validYear = [];
         $scope.candidates = {}; //home, work, and other places
         $scope.selected = {}; //selected candidates' index
 
         var data = null; //JSON object
         var places = {}; //selected home and work IDs
+
+        //map
+        $scope.map = { center: { lat: 37, lng: -122, zoom: 10 } };
 
         //selected home and work IDs
         //number of years to check
@@ -64,6 +65,20 @@ angular.module('365daysApp').controller('SetupCtrl', [
             $scope.selected[type]  = _.map(_.range($scope.candidates[type].length), function (i) {
                 return i < 3 ? true : false; //by default choose up to 3 places
             });
+
+            //show candidates on map
+            var markers = _.map(_.pluck($scope.candidates[type], 'location'), function (m, i) {
+                m.icon = {
+                    type: 'extraMarker',
+                    icon: 'fa-star',
+                    prefix: 'fa',
+                    shape: 'circle',
+                    markerColor: i < 3 ? 'red' : 'blue'
+                };
+                return m;
+            });
+            $scope.map.markers = markers;
+            $scope.map.center = { lat: markers[0].lat, lng: markers[0].lng, zoom: 10 };
         }
 
         function updateStep(stepIndex, result) {
@@ -86,7 +101,7 @@ angular.module('365daysApp').controller('SetupCtrl', [
 
         //from step 2 (selecting home)
         $scope.completeStep = function (stepIndex) {
-            var lastStep = $scope.steps[stepIndex].title;
+            var lastStep = $scope.steps[stepIndex].label;
 
             //get place IDs at the end of each step
             var results = '';
@@ -101,20 +116,21 @@ angular.module('365daysApp').controller('SetupCtrl', [
 
             //get candidates of next places
             if (stepIndex < $scope.steps.length - 1) {
-                getCandidates($scope.steps[stepIndex + 1].title);
+                getCandidates($scope.steps[stepIndex + 1].label);
             }
         };
 
-        //map
-        angular.extend($scope, {
-            center: {
-                lat: 51.505,
-                lng: -0.09,
-                zoom: 4
-            }
-        });
+        //centering map
+        $scope.recenterMap = function (i) {
+            $scope.map.center = {
+                lat: $scope.map.markers[i].lat,
+                lng: $scope.map.markers[i].lng,
+                zoom: 12,
+            };
+        };
 
         //testing
         //$scope.loadFile(2015);
+
     }
 ]);
