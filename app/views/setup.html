@@ -24,9 +24,9 @@
         <!-- step >0. select places -->
         <div ng-if="$index > 0" class="content">
             <ol>
-                <li ng-repeat="h in candidates[step.label]">
+                <li ng-repeat="p in candidates[step.label]">
                     <input type="checkbox" ng-model="selected[step.label][$index]">
-                    {{ h.name }} / {{ h.duration }} / {{ h.count }} days
+                    {{ p.name }} / {{ p.duration }} / {{ p.count }} days
                     <span><a ng-click="recenterMap([$index])">map</a></span>
                     <span><a ng-click="isLocationEditCollapsed = !isLocationEditCollapsed">edit</a></span>
                     <div ng-hide="isLocationEditCollapsed">
