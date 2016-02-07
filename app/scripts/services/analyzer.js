@@ -72,22 +72,20 @@ angular.module('365daysApp').factory('analyzer', [
         allPlaces = all;
 
         //Check same names with different IDs
-        duplicates = _.object(_.compact(_.map(_.omit(_.groupBy(all, function (d) {
+        duplicates = _.filter(_.omit(_.groupBy(all, function (d) {
             return d.name;
-        }), 'unknown'), function (places, key) {
-            if (places.length > 1) {
-                return [ key, places ];
-            }
-        })));
+        }), 'unknown'), function (places) {
+            return places.length > 1;
+        });
 
         return duplicates;
 
     };
 
-    this.mergeDuplicates = function (name, ids) {
+    this.mergeDuplicates = function (index, ids) {
 
         //get place objects with the ids and update them into the same id;
-        var checkedPlaces = _.map(duplicates[name], function (p) {
+        var checkedPlaces = _.map(duplicates[index], function (p) {
             if (_.contains(ids, p.id)) {
                 p.id = ids[0];
             }
@@ -101,7 +99,7 @@ angular.module('365daysApp').factory('analyzer', [
         }).concat(newMergedPlace);
 
         //send merged duplicates to the view
-        duplicates[name] = _.filter(duplicates[name], function (p) {
+        duplicates[index] = _.filter(duplicates[index], function (p) {
             return p.id === newMergedPlace.id;
         }).concat(newMergedPlace);
 

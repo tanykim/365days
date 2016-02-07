@@ -21,8 +21,9 @@ angular.module('365daysApp').controller('SetupCtrl', [
         var fileNum = 0;
 
         //duplicates
-        $scope.duplicates = null;
-        $scope.merged = {}; //selected places index by name, used in checkbox ng-model
+        $scope.duplicates = null; //array of duplicated names
+        $scope.merged = []; //selected places index by duplicates id, used in checkbox ng-model
+        $scope.mergingAt = 0; //current merging index
 
         //selected home and work IDs
         $scope.selected = {}; //true or false, selected candidates' index, used in checkbox ng-model
@@ -77,6 +78,37 @@ angular.module('365daysApp').controller('SetupCtrl', [
                 .then(addYears, addCount);
         });
 
+        function getMarkers(placelist) {
+
+            //show candidates on map
+            var markers = _.map(_.pluck(placelist, 'location'), function (m, i) {
+                m.icon = {
+                    type: 'extraMarker',
+                    icon: 'fa-star',
+                    prefix: 'fa',
+                    shape: 'circle',
+                    markerColor: i < 3 ? 'red' : 'blue'
+                };
+                return m;
+            });
+            $scope.map.markers = markers;
+            console.log(markers);
+            $scope.map.center = { lat: markers[0].lat, lng: markers[0].lng, zoom: 10 };
+        }
+
+        /***
+        **** duplicated place names
+        ****/
+
+        function getDuplicates(data) {
+            $scope.duplicates = analyzer.getPlaceList(data);
+            if (_.size($scope.duplicates) === 0) {
+                updateStep(1, 'not needed');
+                getCandidates('home');
+            }
+            getMarkers($scope.duplicates[0]);
+        }
+
         /***
         **** places at the later steps
         ****/
@@ -92,18 +124,7 @@ angular.module('365daysApp').controller('SetupCtrl', [
             });
 
             //show candidates on map
-            var markers = _.map(_.pluck($scope.candidates[type], 'location'), function (m, i) {
-                m.icon = {
-                    type: 'extraMarker',
-                    icon: 'fa-star',
-                    prefix: 'fa',
-                    shape: 'circle',
-                    markerColor: i < 3 ? 'red' : 'blue'
-                };
-                return m;
-            });
-            $scope.map.markers = markers;
-            $scope.map.center = { lat: markers[0].lat, lng: markers[0].lng, zoom: 10 };
+            getMarkers($scope.candidates[type]);
         }
 
         /***
@@ -114,20 +135,20 @@ angular.module('365daysApp').controller('SetupCtrl', [
         $scope.loadFile = function (year) {
             updateStep(0, year);
             $http.get(getUrl(year)).then(function (d) {
-                $scope.duplicates = analyzer.getPlaceList(d.data);
-                if ($scope.duplicates.length === 0) {
-                    updateStep(1, 'not needed');
-                    getCandidates('home');
-                }
+                getDuplicates(d.data);
             });
         };
 
         //merge locate
-        $scope.mergeDuplicates = function (name) {
-            analyzer.mergeDuplicates(name, _.keys($scope.merged[name]));
+        $scope.mergeAt = function (index) {
+            $scope.mergingAt = index;
+            getMarkers($scope.duplicates[index]);
         };
-        $scope.isReadyToMerge = function (name) {
-            return _.size(_.keys($scope.merged[name])) > 1 ? true : false;
+        $scope.mergeDuplicates = function (index) {
+            analyzer.mergeDuplicates(index, _.keys($scope.merged[index]));
+        };
+        $scope.isReadyToMerge = function (index) {
+            return _.size(_.keys($scope.merged[index])) > 1 ? true : false;
         };
 
         //from step 2 (selecting home)
@@ -137,9 +158,9 @@ angular.module('365daysApp').controller('SetupCtrl', [
             //results of text for html dislpay at the end of each step
             var results = '';
             if (_.isUndefined($scope.steps[stepIndex].label)) { //merged locations
-                _.each($scope.merged, function (val, key) {
+                _.each($scope.merged, function (val, i) {
                     if (_.size(val) > 0) {
-                        results = results + key + ', ';
+                        results = results + $scope.duplicates[i][0].name + ', ';
                     }
                 });
             } else {  //home, work, and others

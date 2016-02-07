@@ -27,19 +27,20 @@
         <!-- step 1. merge uplicates -->
         <div ng-if="$index == 1" class="content">
             <ul>
-                <li ng-repeat="(key, places) in duplicates">
-                    <div>{{ key }} ({{ places.length }})</div>
-                    <div ng-show="duplicates[key].length > 1">
-                        <span ng-repeat="p in places">
-                            <input type="checkbox" ng-model="merged[key][p.id]">
+                <li ng-repeat="d in duplicates" ng-class="mergingAt == $index? 'active' : ''">
+                    <div>
+                        {{ d[0].name }} ({{ d.length }})
+                        <span ng-show="d.length == 1">done</span>
+                        <span ng-show="mergingAt !== $index && d.length > 1"><a ng-click="mergeAt([$index])">locate</a></span>
+                    </div>
+                    <div ng-show="d.length > 1 && mergingAt == $index">
+                        <span ng-repeat="p in d">
+                            <input type="checkbox" ng-model="merged[$parent.$index][p.id]">
                             {{ p.count }} days
                         </span>
-                        <span ng-class="isReadyToMerge(key) ? '' : 'disabled'">
-                            <a ng-click="isReadyToMerge(key) && mergeDuplicates(key)">merge</a>
+                        <span ng-class="isReadyToMerge($index) ? '' : 'disabled'">
+                            <a ng-click="isReadyToMerge($index) && mergeDuplicates($index)">merge</a>
                         </span>
-                    </div>
-                    <div ng-show="duplicates[key].length <= 1">
-                        done
                     </div>
                 </li>
             </ul>
