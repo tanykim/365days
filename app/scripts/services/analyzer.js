@@ -7,6 +7,8 @@ angular.module('365daysApp').factory('analyzer', [
 
     //list of all places
     var allPlaces = [];
+    var duplicates = {};
+    var selectedPlaces = {};
 
     function getDuration(st, et, currentDate) {
 
@@ -70,18 +72,38 @@ angular.module('365daysApp').factory('analyzer', [
         allPlaces = all;
 
         //Check same names with different IDs
-        var duplicates = _.compact(_.map(_.omit(_.groupBy(all, function (d) {
+        duplicates = _.object(_.compact(_.map(_.omit(_.groupBy(all, function (d) {
             return d.name;
-        }), 'unknown'), function (d, key) {
-            if (d.length > 1) {
-                return {
-                    name: key,
-                    location: _.pluck(d, 'location')
-                };
+        }), 'unknown'), function (places, key) {
+            if (places.length > 1) {
+                return [ key, places ];
             }
-        }));
+        })));
 
         return duplicates;
+
+    };
+
+    this.mergeDuplicates = function (name, ids) {
+
+        //get place objects with the ids and update them into the same id;
+        var checkedPlaces = _.map(duplicates[name], function (p) {
+            if (_.contains(ids, p.id)) {
+                p.id = ids[0];
+            }
+            return p;
+        });
+        var newMergedPlace = groupPlacesById(checkedPlaces);
+
+        //replace duplicated places with the new place
+        allPlaces = _.filter(_.clone(allPlaces), function (p) {
+            return !_.contains(ids, p.id);
+        }).concat(newMergedPlace);
+
+        //send merged duplicates to the view
+        duplicates[name] = _.filter(duplicates[name], function (p) {
+            return p.id === newMergedPlace.id;
+        }).concat(newMergedPlace);
 
     };
 
@@ -96,9 +118,17 @@ angular.module('365daysApp').factory('analyzer', [
                     return place.duration;
                 }
             }).reverse().slice(0, 10), function (place) {
-                place.duration = toHourMinute(place.duration);
+                place.humanTime = toHourMinute(place.duration);
                 return place;
             });
+    };
+
+    this.setSelectedPlaces = function (d) {
+        selectedPlaces = d;
+    };
+
+    this.getSelectedPlaces = function () {
+        return selectedPlaces;
     };
 
     return this;

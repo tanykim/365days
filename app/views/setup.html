@@ -1,6 +1,9 @@
 <div class="step-wrapper">
+
+    <!-- each step -->
     <div ng-repeat="step in steps" ng-class="step.style" class="step">
 
+        <!-- title-->
         <div class="title-wrapper">
             <h1 class="title"> Step{{ $index + 1 }}. {{ step.title }} </h1>
             <div ng-if="step.style=='done'" class="result">
@@ -21,12 +24,34 @@
             </div>
         </div>
 
-        <!-- step >0. select places -->
-        <div ng-if="$index > 0" class="content">
+        <!-- step 1. merge uplicates -->
+        <div ng-if="$index == 1" class="content">
+            <ul>
+                <li ng-repeat="(key, places) in duplicates">
+                    <div>{{ key }} ({{ places.length }})</div>
+                    <div ng-show="duplicates[key].length > 1">
+                        <span ng-repeat="p in places">
+                            <input type="checkbox" ng-model="merged[key][p.id]">
+                            {{ p.count }} days
+                        </span>
+                        <span ng-class="isReadyToMerge(key) ? '' : 'disabled'">
+                            <a ng-click="isReadyToMerge(key) && mergeDuplicates(key)">merge</a>
+                        </span>
+                    </div>
+                    <div ng-show="duplicates[key].length <= 1">
+                        done
+                    </div>
+                </li>
+            </ul>
+            <p><a class="btn btn-success" ng-click="completeStep(1)">Done <span class="glyphicon glyphicon-ok"></span></a></p>
+        </div>
+
+        <!-- step >1. select places -->
+        <div ng-if="$index > 1" class="content">
             <ol>
                 <li ng-repeat="p in candidates[step.label]">
                     <input type="checkbox" ng-model="selected[step.label][$index]">
-                    {{ p.name }} / {{ p.duration }} / {{ p.count }} days
+                    {{ p.name }} / {{ p.humanTime }} / {{ p.count }} days
                     <span><a ng-click="recenterMap([$index])">map</a></span>
                     <span><a ng-click="isLocationEditCollapsed = !isLocationEditCollapsed">edit</a></span>
                     <div ng-hide="isLocationEditCollapsed">
@@ -38,7 +63,10 @@
             <p><a class="btn btn-success" ng-click="completeStep($parent.$index)">Done <span class="glyphicon glyphicon-ok"></span></a></p>
         </div>
     </div>
+
+    <!-- done with all steps -->
+    <p ng-if="done"><a class="btn btn-lg btn-success" ng-href="#/vis">Visualize <span class="glyphicon glyphicon-ok"></span></a></p>
 </div>
 
 <!-- map -->
-<leaflet ng-if="completedStepIndex > 0" markers="map.markers" lf-center="map.center" class="map"></leaflet>
+<leaflet markers="map.markers" lf-center="map.center" class="map"></leaflet>

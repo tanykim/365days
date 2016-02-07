@@ -29,6 +29,11 @@ angular
         controller: 'SetupCtrl',
         controllerAs: 'setup'
     })
+    .when('/vis', {
+        templateUrl: 'views/vis.html',
+        controller: 'VisCtrl',
+        controllerAs: 'vis'
+    })
     .otherwise({
         redirectTo: '/'
     });

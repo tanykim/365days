@@ -7,7 +7,6 @@ angular.module('365daysApp').controller('SetupCtrl', [
     function (moment, _, $scope, $http, analyzer) {
 
         //set up process variables
-        $scope.completedStepIndex = 0;
         $scope.steps = [
             { label : 'year', title: 'Select a year', style: '', result: '' },
             { title: 'Merge places with a same name', style: '', result: '' },
@@ -16,14 +15,18 @@ angular.module('365daysApp').controller('SetupCtrl', [
             { label : 'others', title: 'Select other places', style: 'inactive', result: '' }
         ];
 
-        //selected home and work IDs
+        //year
         $scope.validYear = [];
         var yearNum = 3; //number of years to check
         var fileNum = 0;
 
-        //places
-        $scope.selected = {}; //selected candidates' index, used in checkbox ng-model
-        var places = []; //selected place IDs, used for exceptions in calculation places of next steps
+        //duplicates
+        $scope.duplicates = null;
+        $scope.merged = {}; //selected places index by name, used in checkbox ng-model
+
+        //selected home and work IDs
+        $scope.selected = {}; //true or false, selected candidates' index, used in checkbox ng-model
+        var places = {}; //selected place IDs, used for exceptions in calculation places of next steps, sent to VisCntl
         $scope.candidates = {}; //home, work, and other places
 
         //place name edit
@@ -38,7 +41,6 @@ angular.module('365daysApp').controller('SetupCtrl', [
         ****/
 
         function updateStep(stepIndex, result) {
-            $scope.completedStepIndex = stepIndex + 1;
             $scope.steps[stepIndex].style = 'done';
             $scope.steps[stepIndex].result = result;
             if (stepIndex < $scope.steps.length - 1) {
@@ -76,23 +78,14 @@ angular.module('365daysApp').controller('SetupCtrl', [
         });
 
         /***
-        **** merge duplicate
-        ****/
-
-        function mergeDuplicates(duplicates) {
-            console.log(duplicates);
-        }
-
-        /***
         **** places at the later steps
         ****/
 
         function getCandidates(type) {
 
             //get candidates excluding previously selected places
-            var selectedIds = _.values(places);
+            var selectedIds = _.flatten(_.values(places));
             $scope.candidates[type] = analyzer.getPlaces(type, selectedIds);
-            console.log(type, $scope.candidates[type]);
             var count = $scope.candidates[type].length;
             $scope.selected[type]  = _.map(_.range(count), function (i) {
                 return i < 3 ? true : false; //by default choose up to 3 places
@@ -121,33 +114,51 @@ angular.module('365daysApp').controller('SetupCtrl', [
         $scope.loadFile = function (year) {
             updateStep(0, year);
             $http.get(getUrl(year)).then(function (d) {
-                var duplicates = analyzer.getPlaceList(d.data);
-                if (duplicates.length > 0) {
-                    mergeDuplicates(duplicates);
-                } else {
+                $scope.duplicates = analyzer.getPlaceList(d.data);
+                if ($scope.duplicates.length === 0) {
                     updateStep(1, 'not needed');
                     getCandidates('home');
                 }
             });
         };
 
+        //merge locate
+        $scope.mergeDuplicates = function (name) {
+            analyzer.mergeDuplicates(name, _.keys($scope.merged[name]));
+        };
+        $scope.isReadyToMerge = function (name) {
+            return _.size(_.keys($scope.merged[name])) > 1 ? true : false;
+        };
+
         //from step 2 (selecting home)
         $scope.completeStep = function (stepIndex) {
             var lastStep = $scope.steps[stepIndex].label;
 
-            //get place IDs, results of text for html dislpay at the end of each step
+            //results of text for html dislpay at the end of each step
             var results = '';
-            _.each($scope.selected[lastStep], function (d, i) {
-                if (d) {
-                    results = results + $scope.candidates[lastStep][i].name + ', ';
-                    places.push($scope.candidates[lastStep][i].id);
-                }
-            });
+            if (_.isUndefined($scope.steps[stepIndex].label)) { //merged locations
+                _.each($scope.merged, function (val, key) {
+                    if (_.size(val) > 0) {
+                        results = results + key + ', ';
+                    }
+                });
+            } else {  //home, work, and others
+                places[lastStep] = [];
+                _.each($scope.selected[lastStep], function (d, i) {
+                    if (d) { //get place IDs of home and work
+                        results = results + $scope.candidates[lastStep][i].name + ', ';
+                        places[lastStep].push($scope.candidates[lastStep][i].id);
+                    }
+                });
+            }
             updateStep(stepIndex, results.slice(0, -2)); //remove last ', '
 
             //get candidates of next places
             if (stepIndex < $scope.steps.length - 1) {
                 getCandidates($scope.steps[stepIndex + 1].label);
+            } else {
+                $scope.done = true;
+                analyzer.setSelectedPlaces(places);
             }
         };
 
