@@ -408,9 +408,6 @@ module.exports = function (grunt) {
           cwd: '.tmp/images',
           dest: '<%= yeoman.dist %>/images',
           src: ['generated/*']
-        }, {
-          src: 'bower_components/d3/d3.min.js',
-          dest: '<%= yeoman.dist %>/bower_components/d3/d3.min.js'
         }]
       },
       styles: {

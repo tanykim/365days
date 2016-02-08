@@ -1,14 +1,21 @@
 .wrapper {
     margin-top: 20px;
 }
-
-/* setup */
-.step-wrapper {
+.wrapper-left {
     float: left;
     width: 60%;
     box-sizing: border-box;
     padding-right: 20px;
+    border: 1px #efefef solid;
+    padding-left: 20px;
 }
+.wrapper-right {
+    float: left;
+    width: 40%;
+    height: 400px;
+}
+
+/* setup */
 .step {
     margin-bottom: 10px;
     .title-wrapper {
@@ -20,11 +27,6 @@
     a {
         cursor: pointer;
     }
-}
-.map {
-    float: left;
-    width: 40%;
-    height: 400px;
 }
 .inactive {
     background-color: #efefef;
@@ -48,4 +50,23 @@
 }
 .active {
     background-color: #efefef;
+}
+
+/* vis */
+.vis-options {
+    a {
+        cursor: pointer;
+    }
+    .chip {
+        display: inline-block !important;
+        width: 60px !important;
+        height: 20px !important;
+    }
+    .fill-edit {
+        background-color: #efefef;
+        padding: 20px;
+    }
+    .color-picker-wrapper {
+        width: 120px;
+    }
 }

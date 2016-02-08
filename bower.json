@@ -5,6 +5,8 @@
     "angular": "^1.4.0",
     "angular-animate": "^1.4.0",
     "angular-bootstrap": "~1.1.1",
+    "angular-color-picker": "angularjs-color-picker#~0.8.2",
+    "angular-d3-module": "*",
     "angular-leaflet-directive": "~0.10.0",
     "angular-moment": "~0.10.3",
     "angular-route": "^1.4.0",

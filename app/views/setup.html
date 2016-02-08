@@ -1,4 +1,4 @@
-<div class="step-wrapper">
+<div class="wrapper-left">
 
     <!-- each step -->
     <div ng-repeat="step in steps" ng-class="step.style" class="step">
@@ -32,10 +32,15 @@
                     <input type="checkbox" ng-model="selected[step.label][$index]">
                     {{ p.name }} / {{ p.humanTime }} / {{ p.count }} days
                     <span><a ng-click="recenterMap([$index])">map</a></span>
-                    <span><a ng-click="isLocationEditCollapsed = !isLocationEditCollapsed">edit</a></span>
-                    <div ng-hide="isLocationEditCollapsed">
+                    <span>
+                        <a ng-click="isEditCollapsed = !isEditCollapsed">
+                            <span ng-show="isEditCollapsed">Edit</span>
+                            <span ng-hide="isEditCollapsed">Close</span>
+                        </a>
+                    </span>
+                    <div ng-hide="isEditCollapsed">
                         <input type="text" class="form-control" ng-model="newLocationNames[$index]" placeholder=" Enter a new name" ng-click="clearLocationName($index)">
-                        <button type="button" class="btn btn-primary" ng-click="updateLocationName($index, step.label); isLocationEditCollapsed = true">Edit</button>
+                        <button type="button" class="btn btn-primary" ng-click="updateLocationName($index, step.label); isEditCollapsed = true">Edit</button>
                     </div>
                 </li>
             </ol>
@@ -70,8 +75,8 @@
     </div>
 
     <!-- done with all steps -->
-    <p ng-if="done"><a class="btn btn-lg btn-success" ng-href="#/vis">Visualize <span class="glyphicon glyphicon-ok"></span></a></p>
+    <p ng-if="done"><a class="btn btn-lg btn-success" ng-href="#/vis">Next <span class="glyphicon glyphicon-ok"></span></a></p>
 </div>
 
 <!-- map -->
-<leaflet markers="map.markers" lf-center="map.center" class="map"></leaflet>
+<leaflet markers="map.markers" lf-center="map.center" class="wrapper-right"></leaflet>

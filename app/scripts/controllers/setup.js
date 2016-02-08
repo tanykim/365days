@@ -28,9 +28,10 @@ angular.module('365daysApp').controller('SetupCtrl', [
         //selected home and work IDs
         $scope.candidates = {}; //home, work, and other places
         $scope.selected = {}; //true or false, selected candidates' index, used in checkbox ng-model
+        var selectUpto = 3; //default number of selection
 
         //place name edit
-        $scope.isLocationEditCollapsed = true;
+        $scope.isEditCollapsed = true;
         $scope.newLocationNames = [];
 
         //duplicates
@@ -95,7 +96,7 @@ angular.module('365daysApp').controller('SetupCtrl', [
                     icon: 'fa-star',
                     prefix: 'fa',
                     shape: 'circle',
-                    markerColor: i < 3 ? 'red' : 'blue'
+                    markerColor: i < selectUpto ? 'red' : 'blue'
                 };
                 return m;
             });
@@ -114,7 +115,7 @@ angular.module('365daysApp').controller('SetupCtrl', [
             //by default choose up to 3 places
             var count = $scope.candidates[type].length;
             $scope.selected[type]  = _.map(_.range(count), function (i) {
-                return i < 3 ? true : false;
+                return i < selectUpto ? true : false;
             });
 
             //show candidates on map
@@ -168,6 +169,7 @@ angular.module('365daysApp').controller('SetupCtrl', [
                 $scope.duplicates = analyzer.getDuplicates();
                 if (_.size($scope.duplicates) === 0) {
                     updateStep(stepIndex + 1, 'not needed');
+                    $scope.done = true;
                 } else {
                     getMarkers($scope.duplicates[0]);
                 }
@@ -240,6 +242,15 @@ angular.module('365daysApp').controller('SetupCtrl', [
         };
 
         //testing
-        $scope.loadFile(2016);
+        // selectUpto = 4;
+        // updateStep(0, 2016);
+        // $http.get(getUrl(2016)).then(function (d) {
+        //     analyzer.getPlaceList(d.data);
+        //     getCandidates('home');
+        //     $scope.completeStep(1);
+        //     $scope.completeStep(2);
+        //     $scope.completeStep(3);
+        //     $scope.completeStep(4);
+        // });
     }
 ]);

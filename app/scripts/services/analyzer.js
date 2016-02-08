@@ -79,7 +79,6 @@ angular.module('365daysApp').factory('analyzer', [
 
         originalAllPlaces = groupPlacesById(placesGroupedByDay);
         allPlaces = angular.copy(originalAllPlaces);
-        console.log(_.size(originalAllPlaces), _.size(allPlaces));
     };
 
     this.getPlaces = function (type) {
@@ -177,10 +176,19 @@ angular.module('365daysApp').factory('analyzer', [
     /***
     **** from vis.js
     ***/
+    var colors = {
+        home: ['#db59a0', '#eb7e58', '#eb535a', '#ebcd53'], //warm color
+        work: ['#4fa6ce', '#5dd5ba', '#527cb0', '#96d070'], //cold color
+        others: ['#666666', '#8c8c8c', '#b3b3b3', '#d9d9d9'] //grey HSB B- 40, 55, 70, 85%
+    };
     this.getSelectedPlaces = function () {
         return _.object(_.map(selectedPlaces, function (ids, type) {
-            var placeObj = _.map(ids, function (id) {
+            var placeObj = _.map(_.map(ids, function (id) {
                 return _.findWhere(allPlaces, { id: id });
+            }), function (d, i) {
+                d.color = colors[type][i % colors[type].length];
+                d.humanTime = d.humanTime ? d.humanTime : toHourMinute(d.duration);
+                return d;
             });
             return [type, placeObj];
         }));

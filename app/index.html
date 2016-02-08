@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <!-- bower:css -->
+    <link rel="stylesheet" href="bower_components/angular-color-picker/angularjs-color-picker.css" />
     <link rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="bower_components/Leaflet.extra-markers/src/leaflet.extra-markers.css" />
     <!-- endbower -->
@@ -30,9 +31,15 @@
 
     <!-- build:js(.) scripts/vendor.js -->
     <!-- bower:js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
     <script src="bower_components/angular/angular.js"></script>
     <script src="bower_components/angular-animate/angular-animate.js"></script>
     <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+    <script src="bower_components/tinycolor/tinycolor.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="bower_components/angular-color-picker/angularjs-color-picker.js"></script>
+    <script src="bower_components/d3/d3.js"></script>
+    <script src="bower_components/angular-d3-module/angular-d3-module.js"></script>
     <script src="bower_components/leaflet/dist/leaflet-src.js"></script>
     <script src="bower_components/angular-leaflet-directive/dist/angular-leaflet-directive.js"></script>
     <script src="bower_components/moment/moment.js"></script>
@@ -40,7 +47,6 @@
     <script src="bower_components/angular-route/angular-route.js"></script>
     <script src="bower_components/underscore/underscore.js"></script>
     <script src="bower_components/angular-underscore-module/angular-underscore-module.js"></script>
-    <script src="bower_components/d3/d3.js"></script>
     <script src="bower_components/Leaflet.extra-markers/src/leaflet.extra-markers.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
@@ -48,6 +54,7 @@
         <!-- build:js({.tmp,app}) scripts/scripts.js -->
         <script src="scripts/app.js"></script>
         <script src="scripts/services/analyzer.js"></script>
+        <script src="scripts/services/visualizer.js"></script>
         <script src="scripts/controllers/main.js"></script>
         <script src="scripts/controllers/setup.js"></script>
         <script src="scripts/controllers/vis.js"></script>

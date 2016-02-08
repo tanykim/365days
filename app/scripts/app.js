@@ -15,9 +15,12 @@ angular
     'ui.bootstrap',
     'underscore',
     'angularMoment',
-    'leaflet-directive'
+    'leaflet-directive',
+    'color.picker',
+    'd3'
 ])
 .config(['$logProvider', function ($logProvider){
+    //leaflet map debug hide
     $logProvider.debugEnabled(false);
 }])
 .config(function ($routeProvider) {
