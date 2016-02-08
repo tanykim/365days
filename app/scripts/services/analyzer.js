@@ -7,20 +7,25 @@ angular.module('365daysApp').factory('analyzer', [
 
     //list of all places
     var allPlaces = [];
-    var duplicates = {};
     var selectedPlaces = {};
+    var duplicates = [];
+    var originalAllPlaces = [];
+    var originalDuplicates = [];
 
     function getDuration(st, et, currentDate) {
 
         //trim if the segment starts from the previous day or end on the next day
         var sDate = +st.substring(0, 8);
         var eDate = +et.substring(0, 8);
+
         if (+currentDate > sDate) {
-            st = currentDate + 'T000000Z';
+            st = currentDate + 'T000001';
         } else if (eDate > +currentDate) {
-            et = currentDate + 'T235959Z';
+            et = currentDate + 'T235959';
         }
-        return moment(et, 'YYYYMMDDThhmmssZ').diff(moment(st, 'YYYYMMDDThhmmssZ'), 'minutes');
+        return Math.round(moment(et, 'YYYYMMDDTHHmmss')
+            .diff(moment(st, 'YYYYMMDDTHHmmss'), 'minutes', true));
+
     }
 
     function toHourMinute(m) {
@@ -46,6 +51,7 @@ angular.module('365daysApp').factory('analyzer', [
                 location: g[0].location,
                 duration: sum(_.pluck(g, 'duration')),
                 atMidnight: sum(_.pluck(g, 'atMidnight')),
+                logs: _.flatten(_.pluck(g, 'logs')),
                 //count is always 1 when group by day
                 count: g[0].count ? sum(_.pluck(g, 'count')) : 1
             };
@@ -56,56 +62,30 @@ angular.module('365daysApp').factory('analyzer', [
         var placesGroupedByDay = _.flatten(_.compact(_.map(data, function (day) {
                 if (!_.isNull(day.segments)) {
                     var placesInDay = _.compact(_.map(day.segments, function (seg) {
+                        var name = seg.place.name ? seg.place.name : seg.place.type;
+                        name = name === 'unknown' ? 'unnamed' : name;
                         return {
                             id: seg.place.id,
-                            name: seg.place.name ? seg.place.name : seg.place.type,
+                            name: name,
                             location: { lat: seg.place.location.lat, lng: seg.place.location.lon },
                             duration: getDuration(seg.startTime, seg.endTime, day.date),
                             atMidnight: day.date !== seg.startTime.substring(0, 8) ? 1 : 0,
+                            logs: { date: day.date, start: seg.startTime, end: seg.endTime }
                         };
                     }));
                     return groupPlacesById(placesInDay);
                 }
             })));
 
-        var all = groupPlacesById(placesGroupedByDay);
-        allPlaces = all;
-
-        //Check same names with different IDs
-        duplicates = _.filter(_.omit(_.groupBy(all, function (d) {
-            return d.name;
-        }), 'unknown'), function (places) {
-            return places.length > 1;
-        });
-
-        return duplicates;
-
+        originalAllPlaces = groupPlacesById(placesGroupedByDay);
+        allPlaces = angular.copy(originalAllPlaces);
+        console.log(_.size(originalAllPlaces), _.size(allPlaces));
     };
 
-    this.mergeDuplicates = function (index, ids) {
+    this.getPlaces = function (type) {
 
-        //get place objects with the ids and update them into the same id;
-        var checkedPlaces = _.map(duplicates[index], function (p) {
-            if (_.contains(ids, p.id)) {
-                p.id = ids[0];
-            }
-            return p;
-        });
-        var newMergedPlace = groupPlacesById(checkedPlaces);
-
-        //replace duplicated places with the new place
-        allPlaces = _.filter(_.clone(allPlaces), function (p) {
-            return !_.contains(ids, p.id);
-        }).concat(newMergedPlace);
-
-        //send merged duplicates to the view
-        duplicates[index] = _.filter(duplicates[index], function (p) {
-            return p.id === newMergedPlace.id;
-        }).concat(newMergedPlace);
-
-    };
-
-    this.getPlaces = function (type, exceptions) {
+        //get candidates excluding previously selected places
+        var exceptions = _.flatten(_.values(selectedPlaces));
 
         return _.map(_.sortBy(_.filter(allPlaces, function (place) {
                 return !_.contains(exceptions, place.id);
@@ -121,12 +101,89 @@ angular.module('365daysApp').factory('analyzer', [
             });
     };
 
-    this.setSelectedPlaces = function (d) {
-        selectedPlaces = d;
+    this.getDuplicates = function () {
+
+        var selectedPlacesIds = _.flatten(_.values(selectedPlaces));
+
+        //Check same names with different IDs of selected places
+        originalDuplicates = _.filter(_.omit(_.groupBy(allPlaces, function (d) {
+            return d.name;
+        }), 'unnamed'), function (places) {
+            var ids = _.pluck(places, 'id');
+            var commonIds = _.intersection(selectedPlacesIds, ids);
+            //find only one common ids --> 2 or more means selected places with same name
+            return commonIds.length === 1 && places.length > 1;
+        });
+
+        duplicates = angular.copy(originalDuplicates);
+        return duplicates;
     };
 
+    this.mergeDuplicates = function (index, ids) {
+
+        //get place with the highest count number
+        var placeWithMaxCount = _.max(duplicates[index], function (p) {
+            return p.count;
+        });
+        //get place objects with the ids and update them into the id with highest count;
+        var checkedPlaces = _.map(duplicates[index], function (p) {
+            if (_.contains(ids, p.id)) {
+                p.id = placeWithMaxCount.id;
+            }
+            return p;
+        });
+        var newMergedPlace = groupPlacesById(checkedPlaces);
+
+        //replace duplicated places with the new place
+        allPlaces = _.filter(_.clone(allPlaces), function (p) {
+            return !_.contains(ids, p.id);
+        }).concat(newMergedPlace);
+
+        //send merged duplicates to the view
+        duplicates[index] = _.filter(_.clone(duplicates[index]), function (p) {
+            return p.id === newMergedPlace.id;
+        }).concat(newMergedPlace);
+    };
+
+    /***
+    **** from setup.js
+    ***/
+    this.addSelectedPlace = function (type, ids) {
+        selectedPlaces[type] = ids;
+    };
+
+    //when edit happens
+    this.resetToOriginalDuplicate = function (index) {
+        duplicates[index] = angular.copy(originalDuplicates[index]);
+        return originalDuplicates[index];
+    };
+    this.resetSelectedPlace = function (type) {
+        selectedPlaces[type] = [];
+    };
+    this.resetAllPlaces = function () {
+        allPlaces = _.clone(originalAllPlaces);
+    };
+    this.isAlreadySetup = function () {
+        return _.isEmpty(originalAllPlaces) ? false : true;
+    };
+    this.reset = function () {
+        allPlaces = [];
+        selectedPlaces = {};
+        duplicates = [];
+        originalAllPlaces = [];
+        originalDuplicates = [];
+    };
+
+    /***
+    **** from vis.js
+    ***/
     this.getSelectedPlaces = function () {
-        return selectedPlaces;
+        return _.object(_.map(selectedPlaces, function (ids, type) {
+            var placeObj = _.map(ids, function (id) {
+                return _.findWhere(allPlaces, { id: id });
+            });
+            return [type, placeObj];
+        }));
     };
 
     return this;

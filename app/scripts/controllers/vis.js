@@ -6,11 +6,17 @@ angular.module('365daysApp').controller('VisCtrl', [
     '$location', '_', 'analyzer',
     function ($location, _, analyzer) {
 
-        var places = analyzer.getSelectedPlaces();
-        if (_.size(places) === 0) {
+        //check data created
+        if (!analyzer.isAlreadySetup()) {
             $location.path('/setup');
             return false;
         }
+
+        var places = analyzer.getSelectedPlaces();
+        // if (_.size(places) === 0) {
+        //     $location.path('/setup');
+        //     return false;
+        // }
         console.log(places);
     }
 ]);

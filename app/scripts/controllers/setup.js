@@ -6,13 +6,18 @@ angular.module('365daysApp').controller('SetupCtrl', [
     'moment', '_', '$scope', '$http', 'analyzer',
     function (moment, _, $scope, $http, analyzer) {
 
+        //check already data selected, reset factory variables
+        if (analyzer.isAlreadySetup()) {
+            analyzer.reset();
+        }
+
         //set up process variables
         $scope.steps = [
-            { label : 'year', title: 'Select a year', style: '', result: '' },
-            { title: 'Merge places with a same name', style: '', result: '' },
-            { label : 'home', title: 'Select home(s)', style: 'inactive', result: '' },
-            { label : 'work', title: 'Select work(s)', style: 'inactive', result: '' },
-            { label : 'others', title: 'Select other places', style: 'inactive', result: '' }
+            { title: 'Select a year', style: '', result: '' },
+            { title: 'Select home(s)', style: 'inactive', result: '', label : 'home' },
+            { title: 'Select work(s)', style: 'inactive', result: '',label : 'work' },
+            { title: 'Select other places', style: 'inactive', result: '', label : 'others' },
+            { title: 'Merge places with a same name', style: 'inactive', result: '' },
         ];
 
         //year
@@ -20,19 +25,18 @@ angular.module('365daysApp').controller('SetupCtrl', [
         var yearNum = 3; //number of years to check
         var fileNum = 0;
 
-        //duplicates
-        $scope.duplicates = null; //array of duplicated names
-        $scope.merged = []; //selected places index by duplicates id, used in checkbox ng-model
-        $scope.mergingAt = 0; //current merging index
-
         //selected home and work IDs
-        $scope.selected = {}; //true or false, selected candidates' index, used in checkbox ng-model
-        var places = {}; //selected place IDs, used for exceptions in calculation places of next steps, sent to VisCntl
         $scope.candidates = {}; //home, work, and other places
+        $scope.selected = {}; //true or false, selected candidates' index, used in checkbox ng-model
 
         //place name edit
         $scope.isLocationEditCollapsed = true;
         $scope.newLocationNames = [];
+
+        //duplicates
+        $scope.duplicates = null; //array of duplicated names
+        $scope.merged = []; //selected places index by duplicates id, used in checkbox ng-model
+        $scope.mergingAt = 0; //current merging index
 
         //map
         $scope.map = { center: { lat: 37, lng: -122, zoom: 10 } };
@@ -78,6 +82,10 @@ angular.module('365daysApp').controller('SetupCtrl', [
                 .then(addYears, addCount);
         });
 
+        /***
+        **** Map
+        ****/
+
         function getMarkers(placelist) {
 
             //show candidates on map
@@ -91,22 +99,8 @@ angular.module('365daysApp').controller('SetupCtrl', [
                 };
                 return m;
             });
-            $scope.map.markers = markers;
-            console.log(markers);
+            $scope.map.markers = angular.copy(markers);
             $scope.map.center = { lat: markers[0].lat, lng: markers[0].lng, zoom: 10 };
-        }
-
-        /***
-        **** duplicated place names
-        ****/
-
-        function getDuplicates(data) {
-            $scope.duplicates = analyzer.getPlaceList(data);
-            if (_.size($scope.duplicates) === 0) {
-                updateStep(1, 'not needed');
-                getCandidates('home');
-            }
-            getMarkers($scope.duplicates[0]);
         }
 
         /***
@@ -115,12 +109,12 @@ angular.module('365daysApp').controller('SetupCtrl', [
 
         function getCandidates(type) {
 
-            //get candidates excluding previously selected places
-            var selectedIds = _.flatten(_.values(places));
-            $scope.candidates[type] = analyzer.getPlaces(type, selectedIds);
+            $scope.candidates[type] = analyzer.getPlaces(type);
+
+            //by default choose up to 3 places
             var count = $scope.candidates[type].length;
             $scope.selected[type]  = _.map(_.range(count), function (i) {
-                return i < 3 ? true : false; //by default choose up to 3 places
+                return i < 3 ? true : false;
             });
 
             //show candidates on map
@@ -131,12 +125,66 @@ angular.module('365daysApp').controller('SetupCtrl', [
         **** control from HTML
         ****/
 
-        //step 1: load the data JSON file
+        //step 0: load the data JSON file
         $scope.loadFile = function (year) {
             updateStep(0, year);
             $http.get(getUrl(year)).then(function (d) {
-                getDuplicates(d.data);
+                analyzer.getPlaceList(d.data);
+                getCandidates('home');
             });
+        };
+
+        //from step 1 (selecting home)
+        $scope.completeStep = function (stepIndex) {
+
+            var lastStep = $scope.steps[stepIndex].label;
+
+            //results of text for html dislpay at the end of each step
+            var results = '';
+            if (_.isUndefined(lastStep)) { //merged locations
+                _.each($scope.merged, function (val, i) {
+                    if (_.size(_.compact(val)) > 1) { //2 or more selected
+                        results = results + $scope.duplicates[i][0].name + ', ';
+                    }
+                });
+            } else {  //home, work, and others
+                var ids = [];
+                _.each($scope.selected[lastStep], function (d, i) {
+                    if (d) { //get place IDs of home and work
+                        var p = $scope.candidates[lastStep][i];
+                        results = results + p.name + ', ';
+                        ids.push(p.id);
+                    }
+                });
+                //add selected place to Analyzer
+                analyzer.addSelectedPlace(lastStep, ids);
+
+            }
+            updateStep(stepIndex, results.slice(0, -2)); //remove last ', '
+
+            //call next step functions
+            if (stepIndex === $scope.steps.length - 2) { //after all place selection done
+                //send selected places and get duplicates
+                $scope.duplicates = analyzer.getDuplicates();
+                if (_.size($scope.duplicates) === 0) {
+                    updateStep(stepIndex + 1, 'not needed');
+                } else {
+                    getMarkers($scope.duplicates[0]);
+                }
+            } else if (stepIndex < $scope.steps.length - 2) { //get candidates of next places
+                getCandidates($scope.steps[stepIndex + 1].label);
+            } else { //last step
+                $scope.done = true;
+            }
+        };
+
+        //update location name
+        $scope.updateLocationName = function (i, type) {
+            $scope.candidates[type][i].name = $scope.newLocationNames[i];
+            $scope.newLocationNames[i] = '';
+        };
+        $scope.clearLocationName = function (i) {
+            $scope.newLocationNames[i] = '';
         };
 
         //merge locate
@@ -148,39 +196,38 @@ angular.module('365daysApp').controller('SetupCtrl', [
             analyzer.mergeDuplicates(index, _.keys($scope.merged[index]));
         };
         $scope.isReadyToMerge = function (index) {
-            return _.size(_.keys($scope.merged[index])) > 1 ? true : false;
+            return _.size(_.compact($scope.merged[index])) > 1 ? true : false;
+        };
+        $scope.editMergedPlaces = function (index) {
+            var temp = analyzer.resetToOriginalDuplicate(index);
+            console.log(temp);
         };
 
-        //from step 2 (selecting home)
-        $scope.completeStep = function (stepIndex) {
-            var lastStep = $scope.steps[stepIndex].label;
+        //edit previous steps
+        $scope.revertStepTo = function (index) {
 
-            //results of text for html dislpay at the end of each step
-            var results = '';
-            if (_.isUndefined($scope.steps[stepIndex].label)) { //merged locations
-                _.each($scope.merged, function (val, i) {
-                    if (_.size(val) > 0) {
-                        results = results + $scope.duplicates[i][0].name + ', ';
-                    }
-                });
-            } else {  //home, work, and others
-                places[lastStep] = [];
-                _.each($scope.selected[lastStep], function (d, i) {
-                    if (d) { //get place IDs of home and work
-                        results = results + $scope.candidates[lastStep][i].name + ', ';
-                        places[lastStep].push($scope.candidates[lastStep][i].id);
-                    }
-                });
-            }
-            updateStep(stepIndex, results.slice(0, -2)); //remove last ', '
+            //reset the selected and following steps
+            _.each($scope.steps, function (d, i) {
+                if (i === index) {
+                    d.style = '';
+                    d.result = '';
+                } else if (i > index) {
+                    d.style = 'inactive';
+                    d.result = '';
+                }
+                //reset selected places
+                var placeType = $scope.steps[i].label;
+                if (i >= index && !_.isUndefined(placeType)) {
+                    analyzer.resetSelectedPlace(placeType);
+                }
+            });
 
-            //get candidates of next places
-            if (stepIndex < $scope.steps.length - 1) {
-                getCandidates($scope.steps[stepIndex + 1].label);
-            } else {
-                $scope.done = true;
-                analyzer.setSelectedPlaces(places);
-            }
+            //revert to all places and candidates to original
+            analyzer.resetAllPlaces();
+            var type = $scope.steps[index].label;
+            $scope.candidates[type] = analyzer.getPlaces(type);
+
+            $scope.done = false;
         };
 
         //centering map
@@ -191,17 +238,8 @@ angular.module('365daysApp').controller('SetupCtrl', [
                 zoom: 12,
             };
         };
-        //update location name
-        $scope.updateLocationName = function (i, type) {
-            $scope.candidates[type][i].name = $scope.newLocationNames[i];
-            $scope.newLocationNames[i] = '';
-        };
-        $scope.clearLocationName = function (i) {
-            $scope.newLocationNames[i] = '';
-        };
 
         //testing
-        $scope.loadFile(2015);
-
+        $scope.loadFile(2016);
     }
 ]);

@@ -9,6 +9,7 @@
             <div ng-if="step.style=='done'" class="result">
                 <span class="glyphicon glyphicon-ok"></span>
                 {{ step.result }}
+                <span><a ng-click="revertStepTo($index)">Edit</a>
             </div>
         </div>
 
@@ -24,14 +25,34 @@
             </div>
         </div>
 
-        <!-- step 1. merge uplicates -->
-        <div ng-if="$index == 1" class="content">
+        <!-- step >1. select places -->
+        <div ng-if="$index >= 1 && $index < steps.length - 1" class="content">
+            <ol>
+                <li ng-repeat="p in candidates[step.label]">
+                    <input type="checkbox" ng-model="selected[step.label][$index]">
+                    {{ p.name }} / {{ p.humanTime }} / {{ p.count }} days
+                    <span><a ng-click="recenterMap([$index])">map</a></span>
+                    <span><a ng-click="isLocationEditCollapsed = !isLocationEditCollapsed">edit</a></span>
+                    <div ng-hide="isLocationEditCollapsed">
+                        <input type="text" class="form-control" ng-model="newLocationNames[$index]" placeholder=" Enter a new name" ng-click="clearLocationName($index)">
+                        <button type="button" class="btn btn-primary" ng-click="updateLocationName($index, step.label); isLocationEditCollapsed = true">Edit</button>
+                    </div>
+                </li>
+            </ol>
+            <p><a class="btn btn-success" ng-click="completeStep($parent.$index)">Done <span class="glyphicon glyphicon-ok"></span></a></p>
+        </div>
+
+        <!-- last step. merge uplicates -->
+        <div ng-if="$index == steps.length-1" class="content">
             <ul>
                 <li ng-repeat="d in duplicates" ng-class="mergingAt == $index? 'active' : ''">
                     <div>
                         {{ d[0].name }} ({{ d.length }})
-                        <span ng-show="d.length == 1">done</span>
-                        <span ng-show="mergingAt !== $index && d.length > 1"><a ng-click="mergeAt([$index])">locate</a></span>
+                        <span ng-show="d.length == 1">
+                            Done
+                            <a ng-click="editMergedPlaces($index)">Edit</a>
+                        </span>
+                        <span ng-show="mergingAt !== $index && d.length > 1"><a ng-click="mergeAt($index)">locate</a></span>
                     </div>
                     <div ng-show="d.length > 1 && mergingAt == $index">
                         <span ng-repeat="p in d">
@@ -44,24 +65,7 @@
                     </div>
                 </li>
             </ul>
-            <p><a class="btn btn-success" ng-click="completeStep(1)">Done <span class="glyphicon glyphicon-ok"></span></a></p>
-        </div>
-
-        <!-- step >1. select places -->
-        <div ng-if="$index > 1" class="content">
-            <ol>
-                <li ng-repeat="p in candidates[step.label]">
-                    <input type="checkbox" ng-model="selected[step.label][$index]">
-                    {{ p.name }} / {{ p.humanTime }} / {{ p.count }} days
-                    <span><a ng-click="recenterMap([$index])">map</a></span>
-                    <span><a ng-click="isLocationEditCollapsed = !isLocationEditCollapsed">edit</a></span>
-                    <div ng-hide="isLocationEditCollapsed">
-                        <input type="text" class="form-control" ng-model="newLocationNames[$index]" placeholder=" Enter a new name" ng-click="clearLocationName([$index])">
-                        <button type="button" class="btn btn-primary" ng-click="updateLocationName([$index], [step.label]); isLocationEditCollapsed = true">Edit</button>
-                    </div>
-                </li>
-            </ol>
-            <p><a class="btn btn-success" ng-click="completeStep($parent.$index)">Done <span class="glyphicon glyphicon-ok"></span></a></p>
+            <p><a class="btn btn-success" ng-click="completeStep($index)">Done <span class="glyphicon glyphicon-ok"></span></a></p>
         </div>
     </div>
 

@@ -17,6 +17,9 @@ angular
     'angularMoment',
     'leaflet-directive'
 ])
+.config(['$logProvider', function ($logProvider){
+    $logProvider.debugEnabled(false);
+}])
 .config(function ($routeProvider) {
     $routeProvider
     .when('/', {
