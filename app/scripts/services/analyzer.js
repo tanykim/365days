@@ -5,6 +5,9 @@ angular.module('365daysApp').factory('analyzer', [
     'moment',
     function (_, moment) {
 
+    //period of dataset
+    var period = {};
+
     //list of all places
     var allPlaces = [];
     var selectedPlaces = {};
@@ -15,8 +18,8 @@ angular.module('365daysApp').factory('analyzer', [
     function getDuration(st, et, currentDate) {
 
         //trim if the segment starts from the previous day or end on the next day
-        var sDate = +st.substring(0, 8);
-        var eDate = +et.substring(0, 8);
+        var sDate = +st.substr(0, 8);
+        var eDate = +et.substr(0, 8);
 
         if (+currentDate > sDate) {
             st = currentDate + 'T000001';
@@ -35,10 +38,36 @@ angular.module('365daysApp').factory('analyzer', [
             minute + ' minute' + (minute > 1 ? 's ' : ' ');
     }
 
+    function toDayIndex(date) {
+        var startDate = period.startDate;
+        //index(day count) from the start date
+        return moment(date, 'YYYYMMDD').diff(startDate, 'days');
+    }
+
+    function toFormatForVis(t, currentDate) {
+        var date = +t.substr(0, 8);
+        var hms = t.substr(9, 4);
+        if (+currentDate > date) {
+            hms = '0000';
+        } else if (date > +currentDate) {
+            hms = '2400';
+        }
+        //convert to HHmm to minutes
+        return (+hms.substr(0, 2) * 60) + (+hms.substr(2, 2));
+    }
+
     function sum(list) {
         return _.reduce(list, function (memo, num) {
                 return memo + num;
             }, 0);
+    }
+
+    function setPeriod(st, et) {
+        period = {
+            startDate: st,
+            rangeLabel: [st.format('MMMM D, YYYY'), et.format('MMMM D, YYYY')],
+            dayCount: et.diff(st, 'days') + 1
+        };
     }
 
     function groupPlacesById(list) {
@@ -58,6 +87,17 @@ angular.module('365daysApp').factory('analyzer', [
         });
     }
 
+    /***
+    **** from setup.js
+    ***/
+
+    this.setYear = function (year) {
+        setPeriod(
+            moment(year, 'YYYY').startOf('year'),
+            moment(year, 'YYYY').endOf('year')
+        );
+    };
+
     this.getPlaceList = function (data) {
         var placesGroupedByDay = _.flatten(_.compact(_.map(data, function (day) {
                 if (!_.isNull(day.segments)) {
@@ -70,7 +110,7 @@ angular.module('365daysApp').factory('analyzer', [
                             location: { lat: seg.place.location.lat, lng: seg.place.location.lon },
                             duration: getDuration(seg.startTime, seg.endTime, day.date),
                             atMidnight: day.date !== seg.startTime.substring(0, 8) ? 1 : 0,
-                            logs: { date: day.date, start: seg.startTime, end: seg.endTime }
+                            logs: { dateIndex: toDayIndex(day.date), start: toFormatForVis(seg.startTime, day.date), end: toFormatForVis(seg.endTime, day.date) }
                         };
                     }));
                     return groupPlacesById(placesInDay);
@@ -144,9 +184,6 @@ angular.module('365daysApp').factory('analyzer', [
         }).concat(newMergedPlace);
     };
 
-    /***
-    **** from setup.js
-    ***/
     this.addSelectedPlace = function (type, ids) {
         selectedPlaces[type] = ids;
     };
@@ -176,22 +213,27 @@ angular.module('365daysApp').factory('analyzer', [
     /***
     **** from vis.js
     ***/
-    var colors = {
-        home: ['#db59a0', '#eb7e58', '#eb535a', '#ebcd53'], //warm color
-        work: ['#4fa6ce', '#5dd5ba', '#527cb0', '#96d070'], //cold color
-        others: ['#666666', '#8c8c8c', '#b3b3b3', '#d9d9d9'] //grey HSB B- 40, 55, 70, 85%
-    };
-    this.getSelectedPlaces = function () {
-        return _.object(_.map(selectedPlaces, function (ids, type) {
+    // var colors = {
+    //     home: ['#db59a0', '#eb7e58', '#eb535a', '#ebcd53'], //warm color
+    //     work: ['#4fa6ce', '#5dd5ba', '#527cb0', '#96d070'], //cold color
+    //     others: ['#666666', '#8c8c8c', '#b3b3b3', '#d9d9d9'] //grey HSB B- 40, 55, 70, 85%
+    // };
+    this.getDatasetForVis = function () {
+        var places = _.object(_.map(selectedPlaces, function (ids, type) {
             var placeObj = _.map(_.map(ids, function (id) {
                 return _.findWhere(allPlaces, { id: id });
-            }), function (d, i) {
-                d.color = colors[type][i % colors[type].length];
+            }), function (d) {
                 d.humanTime = d.humanTime ? d.humanTime : toHourMinute(d.duration);
+                // d.color = colors[type][i % colors[type].length];
                 return d;
             });
             return [type, placeObj];
         }));
+
+        return {
+            period: period,
+            places: places
+        };
     };
 
     return this;

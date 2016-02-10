@@ -1,15 +1,5 @@
 <div class="wrapper-left">
     <div class="vis-options">
-        <h2> Orientation </h2>
-        <input type="radio" ng-model="options.orientation" ng-value="'portrait'"> Portrait <br/>
-        <input type="radio" ng-model="options.orientation" ng-value="'landscape'"> Landscape
-    </div>
-    <div class="vis-options">
-        <h2> Size </h2>
-        <input type="radio" ng-model="options.size" ng-value="0"> A0: {{ size[options.orientation][0] }} <br/>
-        <input type="radio" ng-model="options.size" ng-value="1"> A1: {{ size[options.orientation][1] }}
-    </div>
-    <div class="vis-options">
         <h2> Colors </h2>
         <div ng-repeat="(type, list) in places">
             <div>{{ type }}</div>
@@ -17,7 +7,7 @@
                 <li ng-repeat="place in list">
                     {{ place.name }} / {{ place.humanTime }} / {{ place.count }} days
                     <!-- options.colors[type][$index % options.colors[type].length] -->
-                    <div style="background-color:{{ options.colors[type][$index] }};" class="chip"></div>
+                    <div style="background-color:{{ colors[type][$index] }};" class="chip"></div>
                     <span>
                         <a ng-click="isEditCollapsed = !isEditCollapsed">
                             <span ng-show="isEditCollapsed">Edit</span>
@@ -25,7 +15,7 @@
                         </a>
                     </span>
                     <div ng-hide="isEditCollapsed" class="fill-edit">
-                        <color-picker ng-model="options.colors[type][$index]" color-picker-format="'hex'" color-picker-alpha="false" color-picker-case="'lower'"></color-picker>
+                        <color-picker ng-model="colors[type][$index]" color-picker-format="'hex'" color-picker-alpha="false" color-picker-case="'lower'"></color-picker>
                         <div>new pattern selection comes here</div>
                         <button type="button" class="btn btn-primary" ng-click="isEditCollapsed = true">Edit</button>
                     </div>
@@ -33,9 +23,8 @@
             </ul>
         </div>
     </div>
-    <p ng-if="edited"><a class="btn btn-lg btn-success" ng-click="completeEdit(); edited = false">Update <span class="glyphicon glyphicon-ok"></span></a></p>
-
+ <!--    <p ng-if="edited"><a class="btn btn-lg btn-success" ng-click="completeEdit(); edited = false">Update <span class="glyphicon glyphicon-ok"></span></a></p> -->
 </div>
-<div class="wrapper-right">
-    <div id="vis">
+<div class="wrapper-right vis">
+    <div id="vis"></div>
 </div>

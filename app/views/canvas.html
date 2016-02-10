@@ -1,0 +1,16 @@
+<div class="wrapper-left">
+    <div class="vis-options">
+        <h2> Orientation </h2>
+        <input type="radio" ng-model="options.orientation" ng-value="'portrait'"> Portrait <br/>
+        <input type="radio" ng-model="options.orientation" ng-value="'landscape'"> Landscape
+    </div>
+    <div class="vis-options">
+        <h2> Size </h2>
+        <input type="radio" ng-model="options.size" ng-value="0"> A0: {{ size[options.orientation][0] }} <br/>
+        <input type="radio" ng-model="options.size" ng-value="1"> A1: {{ size[options.orientation][1] }}
+    </div>
+    <p><a class="btn btn-lg btn-success" ng-href="#/vis">Next <span class="glyphicon glyphicon-ok"></span></a></p>
+</div>
+<div class="wrapper-right">
+    CANVAS PREVIEW COMES HERE
+</div>

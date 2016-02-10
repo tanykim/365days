@@ -6,58 +6,48 @@ angular.module('365daysApp').controller('VisCtrl', [
     '$scope', '$location', '_', 'analyzer', 'visualizer',
     function ($scope, $location, _, analyzer, visualizer) {
 
+        //TODO: make previous step done check as function
         //check data created
         if (!analyzer.isAlreadySetup()) {
             $location.path('/setup');
             return false;
         }
 
-        //get places to visualize
-        $scope.places = analyzer.getSelectedPlaces();
-        console.log($scope.places);
+        //get dataset for vis
+        var dataset = analyzer.getDatasetForVis();
 
-        //vis style selection
-        $scope.options = {
-            orientation: 'portrait',
-            size: 0,
-            //get colors from place info
-            colors: _.object(_.map($scope.places, function (d, key) {
-                return [key, _.pluck(d, 'color')];
-            }))
+        //set colors for vis
+        var colors = {
+            home: ['#db59a0', '#eb7e58', '#eb535a', '#ebcd53'], //warm color
+            work: ['#4fa6ce', '#5dd5ba', '#527cb0', '#96d070'], //cold color
+            others: ['#666666', '#8c8c8c', '#b3b3b3', '#d9d9d9'] //grey HSB B- 40, 55, 70, 85%
         };
-
-        //provided options for style
-        $scope.size = { //A0, A1
-            portrait: ['84.1 x 118.9cm (33.11 x 46.81 inches)', '59.4 x 84.1cm (23.39 x 33.11 inches)'],
-            landscape: ['118.9 x 84.1cm (46.81 x 33.11 inches)', '84.1 x 59.4cm (33.11 x 23.39 inches)']
-        };
+        $scope.colors = _.object(_.map(dataset.places, function (list, type) {
+            var c = _.map(_.range(list.length), function (i) {
+                return colors[type][i % colors[type].length];
+            });
+            return [type, c];
+        }));
+        var oldColors = angular.copy($scope.colors);
+        $scope.places = dataset.places;
+        visualizer.drawVis(dataset, $scope.colors);
 
         //color change
         $scope.isEditCollapsed = true;
-
-        //edit from HTML
-        //watch vis options changes
-        $scope.$watch('options', function (newVal, oldVal) {
+        $scope.$watch('colors', function (newVal, oldVal) {
             if (newVal !== oldVal) {
-                $scope.edited = true;
-            }
-        }, true);
-        $scope.$watch('options.colors', function (newVal, oldVal) {
-            if (newVal !== oldVal) {
-                //update colors of place
-                _.each($scope.places, function (list, key) {
-                    _.each(list, function (d, i) {
-                        d.color = $scope.options.colors[key][i];
-                    });
+                _.each(oldColors, function (list, type) {
+                    //find the changed color and update the vis
+                    var oldColor = _.difference(list, newVal[type])[0];
+                    var newColor = _.difference(newVal[type], list)[0];
+                    if (!_.isUndefined(oldColor) && !_.isUndefined(newColor)) {
+                        var changeIndex = _.indexOf(list, oldColor);
+                        visualizer.updateColor(type, changeIndex, newColor);
+                        //update old color with new one
+                        oldColors[type] = angular.copy(newVal[type]);
+                    }
                 });
             }
         }, true);
-
-        $scope.completeEdit = function () {
-            visualizer.editVis();
-            $scope.edited = false;
-        };
-
-        visualizer.drawVis();
     }
 ]);

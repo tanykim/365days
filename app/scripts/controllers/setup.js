@@ -130,6 +130,7 @@ angular.module('365daysApp').controller('SetupCtrl', [
         $scope.loadFile = function (year) {
             updateStep(0, year);
             $http.get(getUrl(year)).then(function (d) {
+                analyzer.setYear(year);
                 analyzer.getPlaceList(d.data);
                 getCandidates('home');
             });
@@ -242,15 +243,17 @@ angular.module('365daysApp').controller('SetupCtrl', [
         };
 
         //testing
-        // selectUpto = 4;
-        // updateStep(0, 2016);
-        // $http.get(getUrl(2016)).then(function (d) {
-        //     analyzer.getPlaceList(d.data);
-        //     getCandidates('home');
-        //     $scope.completeStep(1);
-        //     $scope.completeStep(2);
-        //     $scope.completeStep(3);
-        //     $scope.completeStep(4);
-        // });
+        selectUpto = 4;
+        var tY = 2015;
+        updateStep(0, tY);
+        $http.get(getUrl(tY)).then(function (d) {
+            analyzer.setYear(tY);
+            analyzer.getPlaceList(d.data);
+            getCandidates('home');
+            $scope.completeStep(1);
+            $scope.completeStep(2);
+            $scope.completeStep(3);
+            $scope.completeStep(4);
+        });
     }
 ]);

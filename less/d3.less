@@ -1,0 +1,143 @@
+
+/* font size: 24, 18, 16, 14, 12 px*/
+/*@huge: 1.5em;
+@large: 1.128em;
+@normal: 1em;
+@small: 0.875em;
+@tiny: 0.75em;
+*/
+
+@huge: 32pt;
+@large: 16pt;
+@normal: 12pt;
+@small: 10pt;
+@tiny: 8pt;
+
+/* colors */
+@black: #000;
+@darkGrey: #666666;
+@grey: #999999;
+@lightGrey: #e5e5e5;
+@lightestGrey: #fafafa;
+@white: #fff;
+
+/* lables or text */
+.pos-middle {
+    text-anchor: middle;
+}
+.pos-end {
+    text-anchor: end;
+}
+.v-middle {
+    alignment-baseline: middle;
+}
+.v-central {
+    alignment-baseline: central;
+}
+.v-top {
+    alignment-baseline: hanging;
+}
+.size-tiny {
+    font-size: @tiny;
+}
+.size-small {
+    font-size: @small;
+}
+.size-normal {
+    font-size: @normal;
+}
+.size-large {
+    font-size: @large;
+}
+.size-huge {
+    font-size: @huge;
+}
+.weight-bold {
+    font-weight: bold;
+}
+
+/* line */
+.stroke-black {
+    stroke: #000;
+}
+.stroke-darkGrey {
+    stroke: @darkGrey;
+}
+.stroke-grey {
+    stroke: @grey;
+}
+.stroke-lightGrey {
+    stroke: @lightGrey;
+}
+.stroke-lightestGrey {
+    stroke: @lightestGrey;
+}
+.stroke-none {
+    stroke: none;
+}
+.stroke-1 {
+    stroke-width: 1;
+}
+.stroke-2 {
+    stroke-width: 2;
+}
+.stroke-dashed{
+    stroke-dasharray: 4, 2;
+}
+
+/* fill */
+.fill-black {
+    fill: @black;
+}
+.fill-darkGrey {
+    fill: @darkGrey;
+}
+.fill-grey {
+    fill: @grey;
+}
+.fill-lightGrey {
+    fill: @lightGrey;
+}
+.fill-lightestGrey {
+    fill: @lightestGrey;
+}
+.fill-white {
+    fill: #fff;
+}
+.fill-none {
+    fill: none;
+}
+
+.axis-lable {
+    .size-tiny();
+    .fill-grey();
+    .pos-middle();
+}
+.stroke-axis {
+    stroke: fade(@grey, 20%);
+}
+.axis text {
+    font-size: @tiny;
+    stroke: none;
+    fill: @grey;
+}
+.axis path, .axis line {
+    fill: none;
+    shape-rendering: crispEdges;
+    .stroke-axis();
+}
+
+.vis {
+    .title {
+        .size-huge();
+        .v-top();
+        .weight-bold();
+    }
+    .headline {
+        .size-normal();
+        .v-top();
+    }
+    .block {
+        .stroke-none();
+    }
+}

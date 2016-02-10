@@ -35,6 +35,11 @@ angular
         controller: 'SetupCtrl',
         controllerAs: 'setup'
     })
+    .when('/canvas', {
+        templateUrl: 'views/canvas.html',
+        controller: 'CanvasCtrl',
+        controllerAs: 'canvas'
+    })
     .when('/vis', {
         templateUrl: 'views/vis.html',
         controller: 'VisCtrl',
