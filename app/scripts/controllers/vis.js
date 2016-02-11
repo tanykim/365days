@@ -29,7 +29,9 @@ angular.module('365daysApp').controller('VisCtrl', [
             return [type, c];
         }));
         var oldColors = angular.copy($scope.colors);
-        $scope.places = dataset.places;
+        $scope.places = dataset.places; //needed for directives
+
+        //draw vis
         visualizer.drawVis(dataset, $scope.colors);
 
         //color change

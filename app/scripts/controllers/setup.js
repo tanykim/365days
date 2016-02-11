@@ -181,7 +181,6 @@ angular.module('365daysApp').controller('SetupCtrl', [
             }
         };
 
-        //update location name
         $scope.updateLocationName = function (i, type) {
             $scope.candidates[type][i].name = $scope.newLocationNames[i];
             $scope.newLocationNames[i] = '';

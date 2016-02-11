@@ -22,6 +22,9 @@
 @white: #fff;
 
 /* lables or text */
+.pos-start {
+    text-anchor: start;
+}
 .pos-middle {
     text-anchor: middle;
 }
@@ -127,6 +130,7 @@
     .stroke-axis();
 }
 
+/* vis elements */
 .vis {
     .title {
         .size-huge();
@@ -140,4 +144,16 @@
     .block {
         .stroke-none();
     }
+}
+.label-year {
+    font-size: @large;
+    .v-top();
+}
+.label-month {
+    font-size: @normal;
+    .v-top();
+}
+.label-week, .label-day {
+    font-size: @small;
+    .v-top();
 }
