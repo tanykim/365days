@@ -126,6 +126,7 @@ angular.module('365daysApp').factory('analyzer', [
         //get candidates excluding previously selected places
         var exceptions = _.flatten(_.values(selectedPlaces));
 
+        //TODO: sort home places by atMidnight first, then duration (nested sorting)
         return _.map(_.sortBy(_.filter(allPlaces, function (place) {
                 return !_.contains(exceptions, place.id);
             }), function (place) {

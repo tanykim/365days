@@ -3,8 +3,8 @@
 /* select year, then select and customize places to visualize */
 
 angular.module('365daysApp').controller('SetupCtrl', [
-    'moment', '_', '$scope', '$http', 'analyzer',
-    function (moment, _, $scope, $http, analyzer) {
+    'moment', '_', '$scope', '$http', 'analyzer', 'leafletBoundsHelpers',
+    function (moment, _, $scope, $http, analyzer, leafletBoundsHelpers) {
 
         //check already data selected, reset factory variables
         if (analyzer.isAlreadySetup()) {
@@ -41,6 +41,10 @@ angular.module('365daysApp').controller('SetupCtrl', [
 
         //map
         $scope.map = { center: { lat: 37, lng: -122, zoom: 10 } };
+        $scope.highlighted = -1;
+        var markerNormalColor = 'black';
+        var markerSelectedColor = 'blue';
+        var markerHighlightedColor = 'red';
 
         /***
         **** update steps
@@ -87,21 +91,42 @@ angular.module('365daysApp').controller('SetupCtrl', [
         **** Map
         ****/
 
-        function getMarkers(placelist) {
+        function getMarkerIcon(i) {
 
+            var markerColor = markerNormalColor;
+            if ($scope.highlighted === -1 && i < selectUpto) {
+                markerColor = markerSelectedColor;
+            } else if ( i === $scope.highlighted) {
+                markerColor = markerHighlightedColor;
+            }
+
+            return {
+                type: 'extraMarker',
+                icon: 'fa-star',
+                prefix: 'fa',
+                shape: 'circle',
+                markerColor: markerColor
+            };
+        }
+
+        function addMarker(place, i) {
+            var marker = _.extend(place, { icon: getMarkerIcon(i) });
+            $scope.map.markers.push(marker);
+        }
+
+        function getMarkers(placelist) {
             //show candidates on map
-            var markers = _.map(_.pluck(placelist, 'location'), function (m, i) {
-                m.icon = {
-                    type: 'extraMarker',
-                    icon: 'fa-star',
-                    prefix: 'fa',
-                    shape: 'circle',
-                    markerColor: i < selectUpto ? 'red' : 'blue'
-                };
-                return m;
+            var markers = _.map(_.pluck(placelist, 'location').slice(0, 10), function (p, i) {
+                p.icon = getMarkerIcon(i);
+                return p;
             });
+
             $scope.map.markers = angular.copy(markers);
-            $scope.map.center = { lat: markers[0].lat, lng: markers[0].lng, zoom: 10 };
+            $scope.map.bounds = leafletBoundsHelpers.createBoundsFromArray([
+                [_.max(_.pluck($scope.map.markers, 'lat')), _.max(_.pluck($scope.map.markers, 'lng'))],
+                [_.min(_.pluck($scope.map.markers, 'lat')), _.min(_.pluck($scope.map.markers, 'lng'))]
+            ]);
+            $scope.map.center = { lat: markers[0].lat, lng: markers[0].lng };
         }
 
         /***
@@ -181,6 +206,51 @@ angular.module('365daysApp').controller('SetupCtrl', [
             }
         };
 
+        //when "map" is clicked
+        $scope.locateOnMap = function (type, i) {
+
+            //update the previously highlighted marker colors
+            var prevMarker = $scope.map.markers[$scope.highlighted];
+            if (!_.isUndefined(prevMarker)) {
+                if ($scope.selected[type][$scope.highlighted]) {
+                    prevMarker.icon.markerColor = markerSelectedColor;
+                } else {
+                   prevMarker.icon.markerColor = markerNormalColor;
+                }
+            }
+
+            //update highlight
+            $scope.highlighted = i;
+            $scope.map.markers[i].icon.markerColor = markerHighlightedColor;
+            //centering map
+            $scope.map.center = {
+                lat: $scope.map.markers[i].lat,
+                lng: $scope.map.markers[i].lng,
+                zoom: 12
+            };
+        };
+
+        //check/uncheck candidate
+        $scope.updateMarkerColor = function (type, index) {
+            if ($scope.selected[type][index]) {
+                $scope.map.markers[index].icon.markerColor = markerSelectedColor;
+            } else {
+                $scope.map.markers[index].icon.markerColor = markerNormalColor;
+            }
+        };
+
+        //delete candidate
+        $scope.deleteCandidate = function (type, index) {
+            $scope.candidates[type].splice(index, 1);
+            $scope.map.markers.splice(index, 1);
+
+            //add a new marker
+            var markerCount = $scope.map.markers.length;
+            addMarker($scope.candidates[type][markerCount].location, markerCount);
+            $scope.locateOnMap(index);
+        };
+
+        //update location name
         $scope.updateLocationName = function (i, type) {
             $scope.candidates[type][i].name = $scope.newLocationNames[i];
             $scope.newLocationNames[i] = '';
@@ -232,15 +302,6 @@ angular.module('365daysApp').controller('SetupCtrl', [
             $scope.done = false;
         };
 
-        //centering map
-        $scope.recenterMap = function (i) {
-            $scope.map.center = {
-                lat: $scope.map.markers[i].lat,
-                lng: $scope.map.markers[i].lng,
-                zoom: 12,
-            };
-        };
-
         //testing
         selectUpto = 4;
         var tY = 2015;
@@ -249,10 +310,10 @@ angular.module('365daysApp').controller('SetupCtrl', [
             analyzer.setYear(tY);
             analyzer.getPlaceList(d.data);
             getCandidates('home');
-            $scope.completeStep(1);
-            $scope.completeStep(2);
-            $scope.completeStep(3);
-            $scope.completeStep(4);
+            // $scope.completeStep(1);
+            // $scope.completeStep(2);
+            // $scope.completeStep(3);
+            // $scope.completeStep(4);
         });
     }
 ]);
