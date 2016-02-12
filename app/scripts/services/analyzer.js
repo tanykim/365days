@@ -192,7 +192,6 @@ angular.module('365daysApp').factory('analyzer', [
     //when edit happens
     this.resetToOriginalDuplicate = function (index) {
         duplicates[index] = angular.copy(originalDuplicates[index]);
-        return originalDuplicates[index];
     };
     this.resetSelectedPlace = function (type) {
         selectedPlaces[type] = [];
