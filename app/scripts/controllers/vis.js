@@ -15,8 +15,6 @@ angular.module('365daysApp').controller('VisCtrl', [
 
         //get dataset for vis
         var dataset = analyzer.getDatasetForVis();
-
-        //places for editing directives
         $scope.places = dataset.places;
 
         //set colors and textures for vis
@@ -35,14 +33,13 @@ angular.module('365daysApp').controller('VisCtrl', [
 
         //for texture options in the edit panel
         var textureOptions = [
-            {}, //no texture
+            {}, //no texture, solid color
             textures.lines().size(8),
             textures.circles().size(8),
             textures.lines().size(4),
             textures.circles().size(4)
         ];
-
-        //index for texture options
+        //index of selected texture options
         var txt = {
             home: [1],
             work: [0],
@@ -57,13 +54,6 @@ angular.module('365daysApp').controller('VisCtrl', [
         $scope.textOptionsCount = function () {
             return _.range(textureOptions.length);
         };
-
-        //draw vis
-        visualizer.drawCanvas();
-        visualizer.drawVis(dataset, $scope.colors);
-
-        //color change
-        $scope.isEditCollapsed = true;
 
         $scope.drawColorTextureChip = function (wrapper, index) {
 
@@ -82,12 +72,33 @@ angular.module('365daysApp').controller('VisCtrl', [
                 .style('fill', texture.url());
         };
 
+        //color/texture change
+        $scope.isEditCollapsed = true;
         $scope.updateTextureSelection = function (type, placeIndex, textureIndex) {
             $scope.textures[type][placeIndex] = textureIndex;
         };
+        $scope.updatePainting = function (type, index, color, textureIndex) {
+            var newFill = {};
+            if (textureIndex === 0) {
+                newFill = {
+                    url: function () { return color; },
+                    isSolid: true
+                };
+            } else {
+                // default texture library setting dupicates ids regardless colors
+                //thus, set the id manually with color + texture id combination
+                newFill = textureOptions[textureIndex].background(color)
+                    .id(color.substr(1, 6) + textureIndex);
+            }
+            visualizer.updatePainting(type, index, newFill);
+        };
+
+        //draw vis
+        visualizer.drawCanvas();
+        visualizer.drawVis(dataset);
     }
 ])
-.directive('colorChip', ['d3', 'visualizer', function (d3, visualizer) {
+.directive('colorChip', ['d3', function (d3) {
     return {
         restrict: 'E',
         scope: {
@@ -102,7 +113,7 @@ angular.module('365daysApp').controller('VisCtrl', [
                 var svg = d3.select(elem[0]).select('svg');
                 svg.selectAll('*').remove();
                 scope.$parent.drawColorTextureChip(svg, newVals[1]);
-                visualizer.updateColor(scope.type, scope.index, newVals[0]);
+                scope.$parent.updatePainting(scope.type, scope.index, newVals[0], newVals[1]);
             });
         }
     };

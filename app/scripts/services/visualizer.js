@@ -120,7 +120,7 @@ angular.module('365daysApp').factory('visualizer', [
         });
     }
 
-    function drawElements(g, data, colors) {
+    function drawElements(g, data) {
 
         function getUnits() {
             if (options.orientation === 'landscape') {
@@ -163,8 +163,7 @@ angular.module('365daysApp').factory('visualizer', [
                         .attr('y', vals.y)
                         .attr('width', vals.w)
                         .attr('height', vals.h)
-                        .attr('class', 'block js-block-' + type + '-' + i)
-                        .style('fill', colors[type][i]);
+                        .attr('class', 'block js-block-' + type + '-' + i);
                 });
             });
         });
@@ -205,7 +204,7 @@ angular.module('365daysApp').factory('visualizer', [
         });
     }
 
-    function drawBarCharts(svg, data, colors) {
+    function drawBarCharts(svg, data) {
 
         //draw another below the 365 days graph
         var chartPos = { left: margin.left, top: margin.top + dim.h + margin.gap };
@@ -282,22 +281,19 @@ angular.module('365daysApp').factory('visualizer', [
                     .attr('y', j * barH + barH / 2 - h / 2)
                     .attr('width', (barW - 20) * p.duration / durationMaxVal)
                     .attr('height', h)
-                    .attr('class', 'stroke-none')
-                    .style('fill', colors[places.type][j]);
+                    .attr('class', 'stroke-none js-block-' + places.type + '-' + j);
                 cw[i].append('rect') // number of days
                     .attr('x', maxTitleWidth + barW)
                     .attr('y', j * barH + barH / 2 - h / 2)
                     .attr('width', (barW - 20) * p.count / countMaxVal)
                     .attr('height', h)
-                    .attr('class', 'stroke-none')
-                    .style('fill', colors[places.type][j]);
+                    .attr('class', 'stroke-none js-block-' + places.type + '-' + j);
             });
         });
     }
 
-    this.drawVis = function (data, colors) {
+    this.drawVis = function (data) {
 
-        //console.log('---vis draw', colors);
         var g = svg.append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -314,14 +310,17 @@ angular.module('365daysApp').factory('visualizer', [
             .attr('class', 'headline');
 
         //draw bar charts
-        drawBarCharts(svg, data, colors);
+        drawBarCharts(svg, data);
 
         //draw elements
-        drawElements(g, data, colors);
+        drawElements(g, data);
     };
 
-    this.updateColor = function (type, i, c) {
-        d3.selectAll('.js-block-' + type + '-' + i).style('fill', c);
+    this.updatePainting = function (type, i, fill) {
+        if (!fill.isSolid) {
+            svg.call(fill);
+        }
+        d3.selectAll('.js-block-' + type + '-' + i).style('fill', fill.url());
     };
 
     return this;
