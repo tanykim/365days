@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('365daysApp').factory('visualizer', [
-    '_', 'moment', 'd3', 'textures', function (_, moment, d3, textures) {
+    '_', 'moment', 'd3', function (_, moment, d3) {
 
     //TODO: check real size of A0 in pixel
     var size = {
@@ -13,6 +13,7 @@ angular.module('365daysApp').factory('visualizer', [
         return options;
     };
 
+    //canvas layout variables
     var svg;
     var margin = { top: 200 };
     var dim = {};
@@ -317,24 +318,6 @@ angular.module('365daysApp').factory('visualizer', [
 
         //draw elements
         drawElements(g, data, colors);
-    };
-
-    this.drawColorTextureChip = function (wrapper, color, texture) {
-        console.log(texture);
-        var t = {};
-        if (texture.type === 'line') {
-            t = textures.lines().size(texture.size).background(color);
-            wrapper.call(t);
-        } else if (texture.type === 'circles') {
-            t = textures.circles().radius(texture.size).background(color);
-            wrapper.call(t);
-        } else { // case of 'none'
-            t.url = function () { return color; };
-        }
-        wrapper.append('rect')
-            .attr('width', 100)
-            .attr('height', 20)
-            .style('fill', t.url());
     };
 
     this.updateColor = function (type, i, c) {

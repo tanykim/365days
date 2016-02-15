@@ -7,7 +7,7 @@
                 <li ng-repeat="place in list">
                     {{ place.name }} / {{ place.humanTime }} / {{ place.count }} days
                     <color-chip data-color="colors[type][$index]" data-texture="textures[type][$index]" data-type="{{ type }}" data-index="{{ $index }}">
-                        <svg width="100" height="20"></svg>
+                        <div class="chip" style="background-color: {{ colors[type][$index] }}"><svg width="60" height="20"></svg></div>
                     </color-chip>
                     <span>
                         <a ng-click="isEditCollapsed = !isEditCollapsed">
@@ -15,10 +15,14 @@
                             <span ng-hide="isEditCollapsed">Close</span>
                         </a>
                     </span>
+                    <!-- color and texture edit panel -->
                     <div ng-hide="isEditCollapsed" class="fill-edit">
                         <color-picker ng-model="colors[type][$index]" color-picker-format="'hex'" color-picker-alpha="false" color-picker-case="'lower'"></color-picker>
-                        <div>new pattern selection comes here</div>
-                        <button type="button" class="btn btn-primary" ng-click="isEditCollapsed = true">Edit</button>
+                        <texture-list ng-repeat="i in textOptionsCount()" data-index="{{ i }}">
+                            <div ng-class="textures[type][$parent.$index] == i ? 'texture selected' : 'texture normal'" style="background-color: {{ colors[type][$parent.$index] }}" ng-click="updateTextureSelection(type, $parent.$index, i)">
+                                <svg width="20" height="20"></svg>
+                            </div>
+                        </texure-list>
                     </div>
                 </li>
             </ul>
