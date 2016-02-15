@@ -328,10 +328,10 @@ angular.module('365daysApp').controller('SetupCtrl', [
             analyzer.setYear(tY);
             analyzer.getPlaceList(d.data);
             getCandidates('home');
-            // $scope.completeStep(1);
-            // $scope.completeStep(2);
-            // $scope.completeStep(3);
-            // $scope.completeStep(4);
+            $scope.completeStep(1);
+            $scope.completeStep(2);
+            $scope.completeStep(3);
+            $scope.completeStep(4);
         });
     }
 ]);

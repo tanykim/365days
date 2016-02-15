@@ -22,10 +22,9 @@ angular.module('365daysApp').controller('CanvasCtrl', [
         };
 
         //edit from HTML
-        $scope.$watch('options', function (newVal, oldVal) {
-            if (newVal !== oldVal) {
-                visualizer.setCanvas($scope.options);
-            }
+        var places = analyzer.getDatasetForVis().places;
+        $scope.$watch('options', function () {
+            visualizer.setCanvas($scope.options, places);
         }, true);
     }
 ]);
