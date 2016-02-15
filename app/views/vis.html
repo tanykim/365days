@@ -6,8 +6,9 @@
             <ul>
                 <li ng-repeat="place in list">
                     {{ place.name }} / {{ place.humanTime }} / {{ place.count }} days
-                    <!-- options.colors[type][$index % options.colors[type].length] -->
-                    <div style="background-color:{{ colors[type][$index] }};" class="chip"></div>
+                    <color-chip data-color="colors[type][$index]" data-texture="textures[type][$index]" data-type="{{ type }}" data-index="{{ $index }}">
+                        <svg width="100" height="20"></svg>
+                    </color-chip>
                     <span>
                         <a ng-click="isEditCollapsed = !isEditCollapsed">
                             <span ng-show="isEditCollapsed">Edit</span>
@@ -23,7 +24,6 @@
             </ul>
         </div>
     </div>
- <!--    <p ng-if="edited"><a class="btn btn-lg btn-success" ng-click="completeEdit(); edited = false">Update <span class="glyphicon glyphicon-ok"></span></a></p> -->
 </div>
 <div class="wrapper-right vis">
     <div id="vis"></div>

@@ -17,7 +17,8 @@ angular
     'angularMoment',
     'leaflet-directive',
     'color.picker',
-    'd3'
+    'd3',
+    'textures'
 ])
 .config(['$logProvider', function ($logProvider){
     //leaflet map debug hide

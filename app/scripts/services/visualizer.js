@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('365daysApp').factory('visualizer', [
-    '_', 'moment', 'd3', function (_, moment, d3) {
+    '_', 'moment', 'd3', 'textures', function (_, moment, d3, textures) {
 
     //TODO: check real size of A0 in pixel
     var size = {
@@ -9,10 +9,11 @@ angular.module('365daysApp').factory('visualizer', [
         landscape: { w: 4000, h: 3000 }
     };
     var options = { orientation: 'portrait', size: 1 };
-
     this.getCanvasSettings = function () {
         return options;
     };
+
+    var svg;
     var margin = { top: 200 };
     var dim = {};
 
@@ -46,6 +47,13 @@ angular.module('365daysApp').factory('visualizer', [
             w: size[options.orientation].w * (-options.size / 2 + 1) - margin.left - margin.right,
             h: size[options.orientation].h * (-options.size / 2 + 1) - margin.top - margin.bottom
         };
+    };
+
+    this.drawCanvas = function () {
+        //draw canvas - keep only one SVG for export later
+        svg = d3.select('#vis').append('svg')
+            .attr('width', dim.w + margin.left + margin.right)
+            .attr('height', dim.h + margin.top + margin.bottom);
     };
 
     function drawDay(g, startDate, dayUnit, index) {
@@ -288,12 +296,7 @@ angular.module('365daysApp').factory('visualizer', [
 
     this.drawVis = function (data, colors) {
 
-        console.log('---vis draw', colors);
-
-        //draw canvas - keep only one SVG for export later
-        var svg = d3.select('#vis').append('svg')
-            .attr('width', dim.w + margin.left + margin.right)
-            .attr('height', dim.h + margin.top + margin.bottom);
+        //console.log('---vis draw', colors);
         var g = svg.append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -314,6 +317,24 @@ angular.module('365daysApp').factory('visualizer', [
 
         //draw elements
         drawElements(g, data, colors);
+    };
+
+    this.drawColorTextureChip = function (wrapper, color, texture) {
+        console.log(texture);
+        var t = {};
+        if (texture.type === 'line') {
+            t = textures.lines().size(texture.size).background(color);
+            wrapper.call(t);
+        } else if (texture.type === 'circles') {
+            t = textures.circles().radius(texture.size).background(color);
+            wrapper.call(t);
+        } else { // case of 'none'
+            t.url = function () { return color; };
+        }
+        wrapper.append('rect')
+            .attr('width', 100)
+            .attr('height', 20)
+            .style('fill', t.url());
     };
 
     this.updateColor = function (type, i, c) {

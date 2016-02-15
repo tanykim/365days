@@ -31,6 +31,7 @@ module.exports = function(config) {
       'bower_components/angular-color-picker/angularjs-color-picker.js',
       'bower_components/d3/d3.js',
       'bower_components/angular-d3-module/angular-d3-module.js',
+      'bower_components/angular-global-injector/angular-global-injector.js',
       'bower_components/leaflet/dist/leaflet-src.js',
       'bower_components/angular-leaflet-directive/dist/angular-leaflet-directive.js',
       'bower_components/moment/moment.js',
@@ -39,6 +40,7 @@ module.exports = function(config) {
       'bower_components/underscore/underscore.js',
       'bower_components/angular-underscore-module/angular-underscore-module.js',
       'bower_components/Leaflet.extra-markers/src/leaflet.extra-markers.js',
+      'bower_components/textures/textures.min.js',
       'bower_components/angular-mocks/angular-mocks.js',
       // endbower
       "app/scripts/**/*.js",
