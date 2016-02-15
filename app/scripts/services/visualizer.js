@@ -9,10 +9,12 @@ angular.module('365daysApp').factory('visualizer', [
         landscape: { w: 4000, h: 3000 }
     };
     var options = { orientation: 'portrait', size: 1 };
-
     this.getCanvasSettings = function () {
         return options;
     };
+
+    //canvas layout variables
+    var svg;
     var margin = { top: 200 };
     var dim = {};
 
@@ -46,6 +48,13 @@ angular.module('365daysApp').factory('visualizer', [
             w: size[options.orientation].w * (-options.size / 2 + 1) - margin.left - margin.right,
             h: size[options.orientation].h * (-options.size / 2 + 1) - margin.top - margin.bottom
         };
+    };
+
+    this.drawCanvas = function () {
+        //draw canvas - keep only one SVG for export later
+        svg = d3.select('#vis').append('svg')
+            .attr('width', dim.w + margin.left + margin.right)
+            .attr('height', dim.h + margin.top + margin.bottom);
     };
 
     function drawDay(g, startDate, dayUnit, index) {
@@ -288,12 +297,7 @@ angular.module('365daysApp').factory('visualizer', [
 
     this.drawVis = function (data, colors) {
 
-        console.log('---vis draw', colors);
-
-        //draw canvas - keep only one SVG for export later
-        var svg = d3.select('#vis').append('svg')
-            .attr('width', dim.w + margin.left + margin.right)
-            .attr('height', dim.h + margin.top + margin.bottom);
+        //console.log('---vis draw', colors);
         var g = svg.append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
