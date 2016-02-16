@@ -30,7 +30,6 @@ module.exports = function(config) {
       'client/bower_components/Leaflet.extra-markers/src/leaflet.extra-markers.js',
       'client/bower_components/textures/textures.min.js',
       'client/bower_components/angular-mocks/angular-mocks.js',
-
       // endbower
       'client/scripts/app.js',
       'client/scripts/**/*.js',

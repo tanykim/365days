@@ -8,7 +8,7 @@ angular.module('365daysApp').controller('CanvasCtrl', [
 
         //check data created
         if (!analyzer.isAlreadySetup()) {
-            $location.path('/setup');
+            $location.path('/year');
             return false;
         }
 

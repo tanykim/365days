@@ -59,7 +59,7 @@ module.exports = function (grunt) {
       injectJS: {
         files: [
           '<%= yeoman.client %>/scripts/**/!(*.spec|*.mock).js',
-          '!<%= yeoman.client %>/scripts/app.js'
+          '<%= yeoman.client %>/scripts/app.js'
         ],
         tasks: ['injector:scripts']
       },
@@ -535,6 +535,7 @@ module.exports = function (grunt) {
       scripts: {
         options: {
           transform: function(filePath) {
+            console.log(filePath);
             filePath = filePath.replace('/client/', '');
             filePath = filePath.replace('/.tmp/', '');
             return '<script src="' + filePath + '"></script>';
@@ -545,8 +546,8 @@ module.exports = function (grunt) {
         files: {
           '<%= yeoman.client %>/index.html': [
                [
-                 '{.tmp,<%= yeoman.client %>}/scripts/**/!(*.spec|*.mock).js',
-                 '!{.tmp,<%= yeoman.client %>}/scripts/app.js'
+                 '{.tmp,<%= yeoman.client %>}/scripts/app.js',
+                 '{.tmp,<%= yeoman.client %>}/scripts/**/!(*.spec|*.mock).js'
                ]
             ]
         }

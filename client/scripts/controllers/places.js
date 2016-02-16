@@ -2,28 +2,42 @@
 
 /* select year, then select and customize places to visualize */
 
-angular.module('365daysApp').controller('SetupCtrl', [
-    'moment', '_', '$scope', '$http', 'analyzer', 'leafletBoundsHelpers',
-    function (moment, _, $scope, $http, analyzer, leafletBoundsHelpers) {
+angular.module('365daysApp').controller('PlacesCtrl', [
+    'moment', '_', '$scope', '$http', '$location', 'analyzer', 'leafletBoundsHelpers',
+    function (moment, _, $scope, $http, $location, analyzer, leafletBoundsHelpers) {
 
-        //check already data selected, reset factory variables
-        if (analyzer.isAlreadySetup()) {
-            analyzer.reset();
-        }
+        //testing
+        var tY = 2015;
+        $http.get('data/places/places_' + tY + '.json').then(function (d) {
+            analyzer.setYear(tY);
+            analyzer.getPlaceList(d.data);
+            getCandidates('home');
+            $scope.completeStep(0);
+            $scope.completeStep(1);
+            $scope.completeStep(2);
+            $scope.completeStep(3);
+        });
+
+        //map - set first to avoid leaflet error
+        $scope.map = { center: {} };
+        $scope.highlighted = -1;
+        var markerNormalColor = 'black';
+        var markerSelectedColor = 'blue';
+        var markerHighlightedColor = 'red';
+
+        //check data created -- comment when testing
+        // if (!analyzer.isAlreadySetup()) {
+        //     $location.path('/year');
+        //     return false;
+        // }
 
         //set up process variables
         $scope.steps = [
-            { title: 'Select a year', style: '', result: '' },
-            { title: 'Select home(s)', style: 'inactive', result: '', label : 'home' },
+            { title: 'Select home(s)', style: '', result: '', label : 'home' },
             { title: 'Select work(s)', style: 'inactive', result: '',label : 'work' },
             { title: 'Select other places', style: 'inactive', result: '', label : 'others' },
             { title: 'Merge places with a same name', style: 'inactive', result: '' },
         ];
-
-        //year
-        $scope.validYear = [];
-        var yearNum = 3; //number of years to check
-        var fileNum = 0;
 
         //selected home and work IDs
         $scope.candidates = {}; //home, work, and other places
@@ -41,13 +55,6 @@ angular.module('365daysApp').controller('SetupCtrl', [
         $scope.merged = []; //selected places index by duplicates id, used in checkbox ng-model
         $scope.mergingAt = 0; //current merging index
 
-        //map
-        $scope.map = { center: { lat: 37, lng: -122, zoom: 10 } };
-        $scope.highlighted = -1;
-        var markerNormalColor = 'black';
-        var markerSelectedColor = 'blue';
-        var markerHighlightedColor = 'red';
-
         /***
         **** update steps
         ****/
@@ -59,35 +66,6 @@ angular.module('365daysApp').controller('SetupCtrl', [
                 $scope.steps[stepIndex + 1].style = '';
             }
         }
-
-        /***
-        **** years at the first steps
-        ****/
-
-        function checkYearCount() {
-            if (fileNum === yearNum) {
-                $scope.validYear.sort().reverse();
-            }
-        }
-        function addYears(d) {
-            $scope.validYear.push(d.config.url.substr(19, 4));
-            fileNum = fileNum + 1;
-            checkYearCount();
-        }
-
-        function addCount() {
-            fileNum = fileNum + 1;
-            checkYearCount();
-        }
-
-        function getUrl(year) {
-            return 'data/places/places_' + year + '.json';
-        }
-
-        _.each(_.range(yearNum), function (i) {
-            $http.get(getUrl(moment().year() - i))
-                .then(addYears, addCount);
-        });
 
         /***
         **** Map
@@ -117,6 +95,7 @@ angular.module('365daysApp').controller('SetupCtrl', [
         }
 
         function getMarkers(placelist) {
+
             //show candidates on map
             var markers = _.map(_.pluck(placelist, 'location').slice(0, 10), function (p, i) {
                 p.icon = getMarkerIcon(i);
@@ -181,17 +160,7 @@ angular.module('365daysApp').controller('SetupCtrl', [
         **** control from HTML
         ****/
 
-        //step 0: load the data JSON file
-        $scope.loadFile = function (year) {
-            updateStep(0, year);
-            $http.get(getUrl(year)).then(function (d) {
-                analyzer.setYear(year);
-                analyzer.getPlaceList(d.data);
-                getCandidates('home');
-            });
-        };
-
-        //from step 1 (selecting home)
+        //from step 0 (selecting home)
         $scope.completeStep = function (stepIndex) {
 
             var lastStep = $scope.steps[stepIndex].label;
@@ -320,18 +289,7 @@ angular.module('365daysApp').controller('SetupCtrl', [
             $scope.done = false;
         };
 
-        //testing
-        selectUpto = 4;
-        var tY = 2015;
-        updateStep(0, tY);
-        $http.get(getUrl(tY)).then(function (d) {
-            analyzer.setYear(tY);
-            analyzer.getPlaceList(d.data);
-            getCandidates('home');
-            $scope.completeStep(1);
-            $scope.completeStep(2);
-            $scope.completeStep(3);
-            $scope.completeStep(4);
-        });
+        //get candidates of home --comment when testing
+        //getCandidates('home');
     }
 ]);

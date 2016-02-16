@@ -20,27 +20,12 @@
             </div>
         </div>
 
-        <!-- step 0. select year -->
-        <div ng-if="$index == 0" data-data="validYear" class="content">
-            <div class="btn-group" uib-dropdown is-open="status.isopen">
-                <button id="year-button" type="button" class="btn btn-primary" uib-dropdown-toggle ng-disabled="disabled">
-                    Available Years <span class="caret"></span>
-                </button>
-                <ul uib-dropdown-menu role="menu" aria-labelledby="year-button">
-                    <li role="menuitem" ng-repeat="year in validYear"><a ng-click="loadFile(year)">{{ year }}</a></li>
-                </ul>
+        <!-- select places -->
+        <div ng-if="$index < steps.length - 1" class="content">
+            <div class="input-group">
+                <span class="input-group-addon" id="basic-addon1">Search</span>
+                <input type="text" ng-model="typedPlace" uib-typeahead="place.name as place for place in namedPlaces | filter:{name:$viewValue} | limitTo:10" class="form-control" placeholder="Type a place name" typeahead-template-url="place.html" typeahead-on-select="addTypedPlace($item, step.label); typedPlace = '';" ng-blur="true">
             </div>
-        </div>
-
-        <!-- step >1. select places -->
-        <div ng-if="$index >= 1 && $index < steps.length - 1" class="content">
-            <!-- <div class="container-fluid typeahead-demo"> -->
-                <div class="input-group">
-                    <span class="input-group-addon" id="basic-addon1">Search</span>
-                <!-- <input auto-complete ui-items="namedPlaces" type="text" class="form-control" placeholder="Type a place name"> -->
-                    <input type="text" ng-model="typedPlace" uib-typeahead="place.name as place for place in namedPlaces | filter:{name:$viewValue} | limitTo:10" class="form-control" placeholder="Type a place name" typeahead-template-url="place.html" typeahead-on-select="addTypedPlace($item, step.label); typedPlace = '';" ng-blur="true">
-                </div>
-            <!-- </div> -->
             <ol>
                 <li ng-repeat="p in candidates[step.label] | limitTo: 10 track by $index " class="{{ highlighted == $index ? 'highlighted' : '' }}">
                     <input type="checkbox" ng-model="selected[step.label][$index]" ng-click="updateMarkerColor(step.label, $index)">

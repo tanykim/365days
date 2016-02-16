@@ -88,7 +88,7 @@ angular.module('365daysApp').factory('analyzer', [
     }
 
     /***
-    **** from setup.js
+    **** from year.js
     ***/
 
     this.setYear = function (year) {

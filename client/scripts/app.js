@@ -31,10 +31,15 @@ angular
         controller: 'MainCtrl',
         controllerAs: 'main'
     })
-    .when('/setup', {
-        templateUrl: 'views/setup.html',
-        controller: 'SetupCtrl',
-        controllerAs: 'setup'
+    .when('/year', {
+        templateUrl: 'views/year.html',
+        controller: 'YearCtrl',
+        controllerAs: 'year'
+    })
+    .when('/places', {
+        templateUrl: 'views/places.html',
+        controller: 'PlacesCtrl',
+        controllerAs: 'places'
     })
     .when('/canvas', {
         templateUrl: 'views/canvas.html',
