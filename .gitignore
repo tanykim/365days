@@ -4,7 +4,8 @@ public
 .idea
 client/bower_components
 dist
-/server/config/local.env.js
+server/config/local.env.js
+server/config/settings.json
 npm-debug.log
 client/styles/*.css
 client/data/places

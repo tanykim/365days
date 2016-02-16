@@ -5,7 +5,6 @@
         Powered by <a href="https://www.moves-app.com/" target="_blank">Moves</a>
     </p>
 
-    <!-- instruction comes here later -->
-    <p> How to use this site </p>
-    <p><a class="btn btn-lg btn-success" ng-href="#/year">Start <span class="glyphicon glyphicon-ok"></span></a></p>
+    <p ng-show="hasCookies">Already signed in <a class="btn btn-success" href="/#year">Go forward<span class="glyphicon glyphicon-ok"></span></a></p>
+    <p ng-hide="hasCookies"><a class="btn btn-lg btn-success" ng-click="authenticateMoves()">Sign with with Moves <span class="glyphicon glyphicon-ok"></span></a></p>
 </div>

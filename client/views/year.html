@@ -1,3 +1,5 @@
+<div ng-include src="'views/step.html'" ng-controller="StepsCtrl"></div>
+
 <div class="wrapper-left">
 
     <div class="step">
@@ -13,6 +15,9 @@
 
         <!-- step 0. select year -->
         <div ng-if="!done" data-data="validYear" class="content">
+            <div ng-if="firstDate">
+                <p>You have been using Moves since {{ firstDate }}.</p>
+            </div>
             <div class="btn-group" uib-dropdown is-open="status.isopen">
                 <button id="year-button" type="button" class="btn btn-primary" uib-dropdown-toggle ng-disabled="disabled">
                     Available Years <span class="caret"></span>

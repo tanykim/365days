@@ -11,8 +11,10 @@ import http from 'http';
 // Setup server
 var app = express();
 var server = http.createServer(app);
+
 require('./config/express')(app);
 require('./routes')(app);
+require('./moves')(app, server);
 
 // Start server
 function startServer() {

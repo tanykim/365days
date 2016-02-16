@@ -12,6 +12,8 @@ angular
 .module('365daysApp', [
     'ngAnimate',
     'ngRoute',
+    'ngCookies',
+    'btford.socket-io',
     'ui.bootstrap',
     'underscore',
     'angularMoment',
@@ -30,6 +32,11 @@ angular
         templateUrl: 'views/main.html',
         controller: 'MainCtrl',
         controllerAs: 'main'
+    })
+    .when('/authentication', {
+        templateUrl: 'views/auth.html',
+        controller: 'AuthCtrl',
+        controllerAs: 'auth'
     })
     .when('/year', {
         templateUrl: 'views/year.html',
@@ -55,4 +62,5 @@ angular
         redirectTo: '/'
     });
 });
+
 

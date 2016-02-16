@@ -1,3 +1,5 @@
+<div ng-include src="'views/step.html'" ng-controller="StepsCtrl"></div>
+
 <script type="text/ng-template" id="place.html">
     <span ng-bind-html="match.label.name | uibTypeaheadHighlight:query"></span> /
     <span ng-bind-html="match.label.humanTime | uibTypeaheadHighlight:query"></span> /

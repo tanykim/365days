@@ -553,7 +553,7 @@ module.exports = function (grunt) {
         }
       },
 
-      // Inject component less into app.less
+      // Inject component less into main.less
       less: {
         options: {
           transform: function(filePath) {
