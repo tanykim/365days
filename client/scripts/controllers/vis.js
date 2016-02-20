@@ -6,13 +6,6 @@ angular.module('365daysApp').controller('VisCtrl', [
     '$scope', '$location', '_', 'textures', 'analyzer', 'visualizer',
     function ($scope, $location, _, textures, analyzer, visualizer) {
 
-        //TODO: make previous step done check as function
-        //check data created
-        if (!analyzer.isAlreadySetup()) {
-            $location.path('/setup');
-            return false;
-        }
-
         //get dataset for vis
         var dataset = analyzer.getDatasetForVis();
         $scope.places = dataset.places;

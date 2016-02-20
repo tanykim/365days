@@ -7,14 +7,32 @@
  * # MainCtrl
  * Controller of the 365daysApp
  */
-angular.module('365daysApp')
-    .controller('MainCtrl', ['$scope', '$location', '$window', 'socket', '$cookies',
-    function ($scope, $location, $window, socket, $cookies) {
+angular.module('365daysApp').controller('MainCtrl', [
+    '$scope', '$location', '$window', 'socket', '$cookies', 'cookieManager',
+    function ($scope, $location, $window, socket, $cookies, cookieManager) {
 
-        console.log('cookies---', $cookies.getAll());
+        console.log('main page cookies---', $cookies.getAll());
 
-        $scope.hasCookies = ($cookies.get('token') && $cookies.get('firstDate')) ? true : false;
-        console.log($scope.hasCookies);
+        $scope.hasValidToken = false;
+        $scope.hasFirstDateCookie = false;
+        $scope.hasValidCookies = false;
+
+        function updateTokenStatus(status) {
+             $scope.hasValidToken = status;
+        }
+
+        if ($cookies.get('token')) {
+            cookieManager.checkTokenValidity(updateTokenStatus);
+            $scope.hasFirstDateCookie = $cookies.get('firstDate');
+        }
+
+        $scope.$watchGroup(['hasValidToken', 'hasFirstDateCookie'], function (newVal, oldVal) {
+            console.log(newVal, oldVal);
+            if (newVal[0] && newVal[1]) {
+                $scope.hasValidCookies = true;
+            }
+        });
+
         $scope.authenticateMoves = function () {
             socket.emit('authenticate');
             socket.on('url', function (d) {

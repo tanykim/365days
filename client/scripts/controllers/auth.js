@@ -4,23 +4,25 @@ angular.module('365daysApp')
     .controller('AuthCtrl', ['$scope', '$interval', '$location', 'socket', '$cookies', 'moment',
     function ($scope, $interval, $location, socket, $cookies, moment) {
 
+        console.log('authentication page - code:', $location.search().code);
+        console.log($cookies.getAll());
+
         $scope.status = 'Requesting authorization...';
         $scope.error = false;
 
         //already authorized, go to next view
-        console.log($cookies.getAll());
         if ($cookies.get('token') && $cookies.get('firstDate')) {
+            $scope.status = 'Already authorized';
             $interval(function () {
                 $location.path('/year').search({});
             }, 1000);
+            return false;
         } else {
-            $location.path('/').search({});
-        }
-
-        var code = $location.search().code;
-        console.log('code---', code);
-        if (code) {
-            socket.emit('code', { code: code });
+            var code = $location.search().code;
+            console.log('code---', code);
+            if (code) {
+                socket.emit('code', { code: code });
+            }
         }
 
         socket.on('token', function () {
@@ -36,8 +38,6 @@ angular.module('365daysApp')
             console.log(d.error);
             $scope.error = true;
             $scope.status = 'Error occured, please try later.';
-            //error cases:
-            //invalid_grant
         });
 
         $scope.goMain = function () {

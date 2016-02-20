@@ -7,16 +7,16 @@ angular.module('365daysApp').controller('PlacesCtrl', [
     function (moment, _, $scope, $http, $location, analyzer, leafletBoundsHelpers) {
 
         //testing
-        var tY = 2015;
-        $http.get('data/places/places_' + tY + '.json').then(function (d) {
-            analyzer.setYear(tY);
-            analyzer.getPlaceList(d.data);
-            getCandidates('home');
-            $scope.completeStep(0);
-            $scope.completeStep(1);
-            $scope.completeStep(2);
-            $scope.completeStep(3);
-        });
+        // var tY = 2015;
+        // $http.get('data/places/places_' + tY + '.json').then(function (d) {
+        //     analyzer.setYear(tY);
+        //     analyzer.getPlaceList(d.data);
+        //     getCandidates('home');
+        //     $scope.completeStep(0);
+        //     $scope.completeStep(1);
+        //     $scope.completeStep(2);
+        //     $scope.completeStep(3);
+        // });
 
         //map - set first to avoid leaflet error
         $scope.map = { center: {} };
@@ -24,12 +24,6 @@ angular.module('365daysApp').controller('PlacesCtrl', [
         var markerNormalColor = 'black';
         var markerSelectedColor = 'blue';
         var markerHighlightedColor = 'red';
-
-        //check data created -- comment when testing
-        // if (!analyzer.isAlreadySetup()) {
-        //     $location.path('/year');
-        //     return false;
-        // }
 
         //set up process variables
         $scope.steps = [
@@ -290,6 +284,6 @@ angular.module('365daysApp').controller('PlacesCtrl', [
         };
 
         //get candidates of home --comment when testing
-        //getCandidates('home');
+        getCandidates('home');
     }
 ]);

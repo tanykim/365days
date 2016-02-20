@@ -62,14 +62,6 @@ angular.module('365daysApp').factory('analyzer', [
             }, 0);
     }
 
-    function setPeriod(st, et) {
-        period = {
-            startDate: st,
-            rangeLabel: [st.format('MMMM D, YYYY'), et.format('MMMM D, YYYY')],
-            dayCount: et.diff(st, 'days') + 1
-        };
-    }
-
     function groupPlacesById(list) {
         return _.map(_.groupBy(list, function (p) {
             return p.id;
@@ -91,11 +83,20 @@ angular.module('365daysApp').factory('analyzer', [
     **** from year.js
     ***/
 
+    // only for testing
     this.setYear = function (year) {
-        setPeriod(
+        this.setPeriod(
             moment(year, 'YYYY').startOf('year'),
             moment(year, 'YYYY').endOf('year')
         );
+    };
+
+    this.setPeriod = function (st, et) {
+        period = {
+            startDate: st,
+            rangeLabel: [st.format('MMMM D, YYYY'), et.format('MMMM D, YYYY')],
+            dayCount: et.diff(st, 'days') + 1
+        };
     };
 
     this.getPlaceList = function (data) {
@@ -199,9 +200,7 @@ angular.module('365daysApp').factory('analyzer', [
     this.resetAllPlaces = function () {
         allPlaces = _.clone(originalAllPlaces);
     };
-    this.isAlreadySetup = function () {
-        return _.isEmpty(originalAllPlaces) ? false : true;
-    };
+
     this.reset = function () {
         allPlaces = [];
         selectedPlaces = {};
