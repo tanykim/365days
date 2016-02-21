@@ -1,3 +1,4 @@
 <div><a href="#/">HOME</a></div>
 <div><a ng-click="logout()">LOG OUT</a></div>
+<div ng-if="currentStep > 1"><a ng-click="goPrev()">Prev</a></div>
 <div>{{ currentStep }} / {{ steps.length }}</div>

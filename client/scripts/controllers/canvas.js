@@ -6,6 +6,11 @@ angular.module('365daysApp').controller('CanvasCtrl', [
     '$scope', '$location', '_', 'analyzer', 'visualizer',
     function ($scope, $location, _, analyzer, visualizer) {
 
+        if (!analyzer.hasPlacesData()) {
+            $location.path('/year');
+            return false;
+        }
+
         //get vis canvas selectinon
         $scope.options = visualizer.getCanvasSettings();
 

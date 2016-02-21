@@ -200,6 +200,12 @@ angular.module('365daysApp').factory('analyzer', [
     this.resetAllPlaces = function () {
         allPlaces = _.clone(originalAllPlaces);
     };
+    this.resetAllSelectedPlaces = function() {
+        selectedPlaces = {};
+    };
+    this.hasPlacesData = function () {
+        return _.isEmpty(originalAllPlaces) ? false : true;
+    };
 
     this.reset = function () {
         allPlaces = [];

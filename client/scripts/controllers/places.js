@@ -6,6 +6,16 @@ angular.module('365daysApp').controller('PlacesCtrl', [
     'moment', '_', '$scope', '$http', '$location', 'analyzer', 'leafletBoundsHelpers',
     function (moment, _, $scope, $http, $location, analyzer, leafletBoundsHelpers) {
 
+        //map - set first to avoid leaflet error
+        $scope.map = { center: { lat: 37, lng: 122, zoom: 10} };
+
+        if (!analyzer.hasPlacesData()) {
+            $location.path('/year');
+            return false;
+        } else {
+            $scope.map = { center: {} };
+        }
+
         //testing
         // var tY = 2015;
         // $http.get('data/places/places_' + tY + '.json').then(function (d) {
@@ -18,8 +28,6 @@ angular.module('365daysApp').controller('PlacesCtrl', [
         //     $scope.completeStep(3);
         // });
 
-        //map - set first to avoid leaflet error
-        $scope.map = { center: {} };
         $scope.highlighted = -1;
         var markerNormalColor = 'black';
         var markerSelectedColor = 'blue';
