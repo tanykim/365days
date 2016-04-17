@@ -7,7 +7,7 @@
         Analyzing your trips
     </div>
     <div ng-if="loaded">
-        <div ng-repeat="trip in tripList" class="trip-list">
+        <div ng-repeat="trip in tripList track by $index" class="trip-list">
             <div class="check-box"><input type="checkbox" ng-model="selected[$index]"></div>
             <div class="date">{{ trip.date | amDateFormat:'MMM DD YYYY (ddd)'}}</div>
             <div class="itinerary">
@@ -15,6 +15,7 @@
                 <div class="location-name"><i class="fa fa-arrow-down" aria-hidden="true"></i></div>
                 <div class="location-name">{{ trip.name.to }}</div>
             </div>
+            <div><span><a ng-click="removeTrip($index)">delete</span></div>
             <div ng-if="(trip.date | amDateFormat: 'YYYYMMDD') == (tripList[$index - 1].date | amDateFormat: 'YYYYMMDD')" class="merge">
                 <span><a ng-click="mergeTrips($index)">merge</span>
             </div>
@@ -29,9 +30,17 @@
                 <button type="button" class="btn btn-default" ng-click="open()"><i class="glyphicon glyphicon-calendar"></i></button>
             </span>
         </p>
-        <input type="text" ng-model="from" placeholder="From">
-        <input type="text" ng-model="to" placeholder="To">
-        <button type="button" class="btn btn-primary" ng-click="addTrip(); isAddOpen = true">Add</button>
+        <input type="text" ng-model="newTrip.typed.from" placeholder="San Francisco">
+        <input type="text" ng-model="newTrip.typed.to" placeholder="Paris">
+        <button type="button" class="btn btn-primary" ng-click="searchTripGeocoding(); isAddOpen = true">Add</button>
+        <div ng-if="newTrip.searched">
+            We found <br/>
+            <strong>{{ newTrip.newName.from }}</strong> for {{ newTrip.typed.from }} and <br/>
+            <strong>{{ newTrip.newName.to }}</strong> for {{ newTrip.typed.to }}.<br/>
+            Want to add with these names?
+            <div><a ng-click="addTrip(true)">YES</a></div>
+            <div><a ng-click="addTrip(false)">NO - use what I typed</a></div>
+        </div>
     </div>
 
     <!-- Finish Button -->
