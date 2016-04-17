@@ -6,18 +6,25 @@
     <div ng-if="!loaded">
         Analyzing your trips
     </div>
-    <ul ng-if="loaded">
-        <li ng-repeat="trip in tripList track by $index">
-            <input type="checkbox" ng-model="selected[$index]">
-            {{ trip.date }} <strong>FROM</strong> {{ trip.from }} <strong>TO</strong> {{ trip.to }}
-            <!-- <span><a ng-click="updateUserSetTrips($index)">Add</a></span> -->
-        </li>
-    </ul>
+    <div ng-if="loaded">
+        <div ng-repeat="trip in tripList" class="trip-list">
+            <div class="check-box"><input type="checkbox" ng-model="selected[$index]"></div>
+            <div class="date">{{ trip.date | amDateFormat:'MMM DD YYYY (ddd)'}}</div>
+            <div class="itinerary">
+                <div class="location-name">{{ trip.name.from }}</div>
+                <div class="location-name"><i class="fa fa-arrow-down" aria-hidden="true"></i></div>
+                <div class="location-name">{{ trip.name.to }}</div>
+            </div>
+            <div ng-if="(trip.date | amDateFormat: 'YYYYMMDD') == (tripList[$index - 1].date | amDateFormat: 'YYYYMMDD')" class="merge">
+                <span><a ng-click="mergeTrips($index)">merge</span>
+            </div>
+        </div>
+    </div>
     <!-- Add a trip -->
     <div><a ng-click="isAddOpen = !isAddOpen">Add a trip</a></div>
     <div ng-show="isAddOpen">
         <p class="input-group">
-            <input type="text" class="form-control" uib-datepicker-popup="MMMM dd, yyyy" ng-model="dt" show-weeks="false" placeholder="{{ minDate | amDateFormat: 'MMMM DD, YYYY'}}" is-open="datePicker.opened" min-date="minDate" max-date="maxDate" init-date="minDate" ng-required="true" show-button-bar="false" ng-change="setTripDate(this)">
+            <input type="text" class="form-control" uib-datepicker-popup="MMMM dd, yyyy" ng-model="dt" show-weeks="false" placeholder="{{ minDate | amDateFormat: 'MMMM DD, YYYY' }}" is-open="datePicker.opened" min-date="minDate" max-date="maxDate" init-date="minDate" ng-required="true" show-button-bar="false" ng-change="setTripDate(this)">
             <span class="input-group-btn">
                 <button type="button" class="btn btn-default" ng-click="open()"><i class="glyphicon glyphicon-calendar"></i></button>
             </span>

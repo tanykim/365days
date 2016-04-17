@@ -125,8 +125,11 @@ angular.module('365daysApp').factory('analyzer', [
                     if (_.isUndefined(prevPlaceLocation) && day.segments.length -1 === i) {
                         prevPlaceLocation = seg.place.location;
                     }
-                    //compare with the place with the previous day
-                    if (!_.isUndefined(prevPlaceLocation)) {
+                    if (seg.place.location.lat == 0) {
+                        console.log(seg);
+                    }
+                    //compare with the place with the previous day, exclode when lat and lon are 0
+                    if (!_.isUndefined(prevPlaceLocation) && seg.place.location.lat !== 0 && seg.place.location.lon !== 0) {
                         //roughly one hour tiem zone difference
                         if (Math.abs(prevPlaceLocation.lon - seg.place.location.lon) > 6) {
                             //add traveled places
