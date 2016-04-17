@@ -271,7 +271,15 @@ angular.module('365daysApp').factory('analyzer', [
     };
     this.getDateRanges = function () {
         return period;
-    }
+    };
+    this.setUserSelectedTrips = function (tripList) {
+        userSetTrips = _.map(angular.copy(tripList), function (trip) {
+            return {
+                dateIndex: toDayIndex(trip.date.format('YYYYMMDD')),
+                itinerary: trip.name
+            };
+        });
+    };
 
     /***
     **** from vis.js
@@ -289,7 +297,8 @@ angular.module('365daysApp').factory('analyzer', [
 
         return {
             period: period,
-            places: places
+            places: places,
+            trips: userSetTrips
         };
     };
 

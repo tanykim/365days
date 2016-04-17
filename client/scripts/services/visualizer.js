@@ -34,12 +34,12 @@ angular.module('365daysApp').factory('visualizer', [
             margin.left = 50;
             margin.right = 20;
             //gap includes travel indications and title of bar charts
-            margin.gap = 100;
+            margin.gap = 60;
             //bottom includes bar charts area and type title and gap
             margin.bottom = placeCountMax * barH + margin.gap;
         } else {
             margin.left = 200;
-            margin.gap = 30;
+            margin.gap = 200;
             margin.right = barW * 2 + maxTitleWidth + 20; //400 is temporary, width of place name
             margin.bottom = 20;
         }
@@ -118,6 +118,36 @@ angular.module('365daysApp').factory('visualizer', [
                     .attr('class', 'stroke-1 stroke-black');
             }
         });
+    }
+
+    function drawTrips(g, trip, startDate, dayUnit) {
+
+        var x1, x2, y1, y2;
+        if (options.orientation === 'landscape') {
+            x1 = dayUnit * trip.dateIndex;
+            x2 = dayUnit * trip.dateIndex;
+            y1 = dim.h;
+            y2 = dim.h + margin.gap;
+        } else {
+            x1 = dim.w;
+            x2 = dim.w + margin.gap;
+            y1 = dayUnit * trip.dateIndex;
+            y2 = dayUnit * trip.dateIndex;
+        }
+        var currentDate = startDate.clone().add(trip.dateIndex, 'days');
+
+        //TODO: tailor the poisition depending on departure/arrival
+        g.append('line')
+            .attr('x1', x1)
+            .attr('x2', x2)
+            .attr('y1', y1)
+            .attr('y2', y2)
+            .attr('class', 'stroke-1 stroke-black');
+        g.append('text')
+            .attr('x', x1)
+            .attr('y', y1)
+            .text(trip.itinerary.from + ' >> ' + trip.itinerary.to)
+            .attr('class', 'size-small fill-black');
     }
 
     function drawElements(g, data) {
@@ -201,6 +231,11 @@ angular.module('365daysApp').factory('visualizer', [
                     .attr('y', -6)
                     .attr('class', 'pos-end');
             }
+        });
+
+        //draw trips
+        _.each(data.trips, function (d) {
+            drawTrips(g, d, data.period.startDate, dayUnit);
         });
     }
 
