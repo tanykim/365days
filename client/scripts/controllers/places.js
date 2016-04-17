@@ -7,27 +7,28 @@ angular.module('365daysApp').controller('PlacesCtrl', [
     function (moment, _, $scope, $http, $location, analyzer, leafletBoundsHelpers) {
 
         //map - set first to avoid leaflet error
-        $scope.map = { center: { lat: 37, lng: 122, zoom: 10} };
+        $scope.map = { center: {} };
 
-        if (!analyzer.hasPlacesData()) {
-            $location.path('/year');
-            return false;
-        } else {
-            $scope.map = { center: {} };
-        }
+        // if (!analyzer.hasPlacesData()) {
+        //     $location.path('/year');
+        //     return false;
+        // } else {
+        //     $scope.map = { center: {} };
+        // }
 
         //testing
-        // var tY = 2015;
-        // $http.get('data/places/places_' + tY + '.json').then(function (d) {
-        //     analyzer.setYear(tY);
-        //     analyzer.getPlaceList(d.data);
-        //     getCandidates('home');
-        //     $scope.completeStep(0);
-        //     $scope.completeStep(1);
-        //     $scope.completeStep(2);
-        //     $scope.completeStep(3);
-        // });
+        var tY = 2015;
+        $http.get('data/places/places_' + tY + '.json').then(function (d) {
+            analyzer.setYear(tY);
+            analyzer.getPlaceList(d.data);
+            getCandidates('home');
+            // $scope.completeStep(0);
+            // $scope.completeStep(1);
+            // $scope.completeStep(2);
+            // $scope.completeStep(3);
+        });
 
+        //markers
         $scope.highlighted = -1;
         var markerNormalColor = 'black';
         var markerSelectedColor = 'blue';
@@ -41,7 +42,7 @@ angular.module('365daysApp').controller('PlacesCtrl', [
             { title: 'Merge places with a same name', style: 'inactive', result: '' },
         ];
 
-        //selected home and work IDs
+        //selected home and work, others IDs
         $scope.candidates = {}; //home, work, and other places
         $scope.selected = {}; //true or false, selected candidates' index, used in checkbox ng-model
         var selectUpto = 3; //default number of selection
@@ -76,10 +77,14 @@ angular.module('365daysApp').controller('PlacesCtrl', [
         function getMarkerIcon(i) {
 
             var markerColor = markerNormalColor;
-            if ($scope.highlighted === -1 && i < selectUpto) {
-                markerColor = markerSelectedColor;
-            } else if ( i === $scope.highlighted) {
-                markerColor = markerHighlightedColor;
+
+            //if markers are not for merging places
+            if ($scope.steps[3].style === 'inactive') {
+                if ($scope.highlighted === -1 && i < selectUpto) {
+                    markerColor = markerSelectedColor;
+                } else if ( i === $scope.highlighted) {
+                    markerColor = markerHighlightedColor;
+                }
             }
 
             return {
@@ -96,18 +101,19 @@ angular.module('365daysApp').controller('PlacesCtrl', [
             $scope.map.markers.push(marker);
         }
 
-        function getMarkers(placelist) {
-
-            //show candidates on map
-            var markers = _.map(_.pluck(placelist, 'location').slice(0, 10), function (p, i) {
+        function putMarkers(placelist) {
+            console.log('----get markers');
+            $scope.map.markers = _.map(placelist, function (p, i) {
                 p.icon = getMarkerIcon(i);
                 return p;
             });
+        }
 
-            $scope.map.markers = angular.copy(markers);
+        function setMapBoundaries(placelist) {
+            var lats = _.pluck(placelist, 'lat');
+            var lngs = _.pluck(placelist, 'lng');
             $scope.map.bounds = leafletBoundsHelpers.createBoundsFromArray([
-                [_.max(_.pluck($scope.map.markers, 'lat')), _.max(_.pluck($scope.map.markers, 'lng'))],
-                [_.min(_.pluck($scope.map.markers, 'lat')), _.min(_.pluck($scope.map.markers, 'lng'))]
+                [_.max(lats), _.max(lngs)],[_.min(lats), _.min(lngs)]
             ]);
         }
 
@@ -115,7 +121,7 @@ angular.module('365daysApp').controller('PlacesCtrl', [
 
             //update the previously highlighted marker colors
             var prevMarker = $scope.map.markers[$scope.highlighted];
-            if (!_.isUndefined(prevMarker)) {
+            if (!_.isUndefined(prevMarker) && !_.isNumber(type)) {
                 if ($scope.selected[type][$scope.highlighted]) {
                     prevMarker.icon.markerColor = markerSelectedColor;
                 } else {
@@ -123,15 +129,24 @@ angular.module('365daysApp').controller('PlacesCtrl', [
                 }
             }
 
+            //markers for merging places
+            if (!_.isUndefined(prevMarker) && _.isNumber(type)) {
+                prevMarker.icon.markerColor = markerSelectedColor;
+            }
+
             //update highlight
             $scope.highlighted = i;
+
             $scope.map.markers[i].icon.markerColor = markerHighlightedColor;
-            //centering map
-            $scope.map.center = {
-                lat: $scope.map.markers[i].lat,
-                lng: $scope.map.markers[i].lng,
-                zoom: 12
-            };
+
+            //centering map by changing boundaries
+            var lat = $scope.map.markers[i].lat;
+            var lng = $scope.map.markers[i].lng;
+            var offset = 0.04;
+            $scope.map.bounds = leafletBoundsHelpers.createBoundsFromArray([
+                [lat + offset, lng + offset], [lat - offset, lng - offset]
+            ]);
+
         }
 
         /***
@@ -151,11 +166,17 @@ angular.module('365daysApp').controller('PlacesCtrl', [
                 return i < selectUpto ? true : false;
             });
 
-            if (isReverted) { //remove all markers if it's reverting
+            //remove all markers if it's reverting
+            if (isReverted) {
                 $scope.map.markers = [];
-            } else { //show candidates on map
-                getMarkers($scope.candidates[type]);
             }
+
+            //for markers
+            var topLocations = _.pluck($scope.candidates[type], 'location').slice(0, 10);
+            //set map boundaries
+            setMapBoundaries(topLocations);
+            //show candidates on map
+            putMarkers(topLocations);
         }
 
         /***
@@ -198,7 +219,7 @@ angular.module('365daysApp').controller('PlacesCtrl', [
                     updateStep(stepIndex + 1, 'not needed');
                     $scope.done = true;
                 } else {
-                    getMarkers($scope.duplicates[0]);
+                    putMarkers($scope.duplicates[0]);
                 }
             } else if (stepIndex < $scope.steps.length - 2) { //get candidates of next places
                 getCandidates($scope.steps[stepIndex + 1].label);
@@ -217,12 +238,21 @@ angular.module('365daysApp').controller('PlacesCtrl', [
         };
 
         //check/uncheck candidate
-        $scope.updateMarkerColor = function (type, index) {
-            if ($scope.selected[type][index]) {
-                $scope.map.markers[index].icon.markerColor = markerSelectedColor;
-            } else {
-                $scope.map.markers[index].icon.markerColor = markerNormalColor;
+        $scope.updateMarkerColor = function (type, index, placeId) {
+            if (!_.isNumber(type)) { //home, work, others markers
+                if ($scope.selected[type][index]) {
+                    $scope.map.markers[index].icon.markerColor = markerSelectedColor;
+                } else {
+                    $scope.map.markers[index].icon.markerColor = markerNormalColor;
+                }
+            } else { //merging place markers
+                if ($scope.merged[type][placeId]) {
+                    $scope.map.markers[index].icon.markerColor = markerSelectedColor;
+                } else {
+                    $scope.map.markers[index].icon.markerColor = markerNormalColor;
+                }
             }
+
         };
 
         //when 'map' is clicked
@@ -251,7 +281,7 @@ angular.module('365daysApp').controller('PlacesCtrl', [
         //merge locate
         $scope.mergeAt = function (index) { //index in the list
             $scope.mergingAt = index;
-            getMarkers($scope.duplicates[index]);
+            putMarkers($scope.duplicates[index]);
         };
         $scope.mergeDuplicates = function (index) {
             analyzer.mergeDuplicates(index, _.keys($scope.merged[index]));
@@ -287,11 +317,11 @@ angular.module('365daysApp').controller('PlacesCtrl', [
 
             //revert to all places and candidates to original
             analyzer.resetAllPlaces();
-            getCandidates($scope.steps[index].label, index === 0 ? true : false);
+            getCandidates($scope.steps[index].label, true);
             $scope.done = false;
         };
 
         //get candidates of home --comment when testing
-        getCandidates('home');
+        //getCandidates('home');
     }
 ]);

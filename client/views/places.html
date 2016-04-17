@@ -63,8 +63,9 @@
                     </div>
                     <div ng-show="d.length > 1 && mergingAt == $index">
                         <span ng-repeat="p in d">
-                            <input type="checkbox" ng-model="merged[$parent.$index][p.id]">
+                            <input type="checkbox" ng-model="merged[$parent.$index][p.id]" ng-click="updateMarkerColor($parent.$index, $index, p.id)">
                             {{ p.count }} days
+                            <span><a ng-click="locateOnMap($parent.$index, $index)">Map</a></span>
                         </span>
                         <span ng-class="isReadyToMerge($index) ? '' : 'disabled'">
                             <a ng-click="mergeDuplicates($index)">merge</a>
@@ -81,4 +82,4 @@
 </div>
 
 <!-- map -->
-<leaflet markers="map.markers" bounds="map.bounds" lf-center="map.center" class="wrapper-right"></leaflet>
+<leaflet markers="map.markers" bounds="map.bounds" class="wrapper-right"></leaflet>
