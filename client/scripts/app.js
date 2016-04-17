@@ -48,6 +48,11 @@ angular
         controller: 'PlacesCtrl',
         controllerAs: 'places'
     })
+    .when('/trips', {
+        templateUrl: 'views/trips.html',
+        controller: 'TripsCtrl',
+        controllerAs: 'trips'
+    })
     .when('/canvas', {
         templateUrl: 'views/canvas.html',
         controller: 'CanvasCtrl',

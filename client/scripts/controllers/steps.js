@@ -4,7 +4,7 @@ angular.module('365daysApp')
     .controller('StepsCtrl', ['_', '$cookies', '$location', '$scope', 'analyzer',
     function (_, $cookies, $location, $scope, analyzer) {
 
-        $scope.steps = ['year', 'places', 'canvas', 'vis'];
+        $scope.steps = ['year', 'places', 'trips', 'canvas', 'vis'];
         $scope.currentStep = _.indexOf($scope.steps, $location.path().substr(1)) + 1;
 
         $scope.logout = function () {

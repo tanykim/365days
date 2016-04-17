@@ -6,8 +6,33 @@ module.exports = function(app, server) {
     var io = socketio.listen(server);
     var https = require('https');
     var qs = require('querystring');
+    var _ = require('underscore');
     var settings = require('./config/settings.json');
 
+    //gor geocoding
+    var geocoderProvider = 'google';
+    var httpAdapter = 'https';
+    var extra = {
+        apiKey: settings['google_api'],
+        formatter: null
+    };
+    var geocoder = require('node-geocoder')(geocoderProvider, httpAdapter, extra);
+
+    function reverseGeocoding(id, type, lat, lng) {
+        geocoder.reverse({ lat:lat, lon:lng }, function (err, res) {
+            var name = lat + ', ' + lng;
+            if (_.isArray(res)) {
+                name = (res[0].city ? (res[0].city + ', ') : '') + res[0].country;
+            }
+            io.emit('location', {
+                id: id,
+                type: type,
+                name: name
+            });
+        });
+    }
+
+    //for moves
     var apiOptions = {
         protocol: 'https://',
         root: 'api.moves-app.com',
@@ -95,6 +120,15 @@ module.exports = function(app, server) {
         socket.on('places', function (params) {
             console.log('--call places', params.from, params.to);
             get('/api/1.1/user/places/daily?', params, 'GET', sendPlaces)
+        });
+
+        //geo coding for trips
+        socket.on('trips', function (trips) {
+            _.each(trips, function (trip, i) {
+                reverseGeocoding(i, 'from', trip.from.lat, trip.from.lon);
+                reverseGeocoding(i, 'to', trip.to.lat, trip.to.lon);
+            });
+
         });
     });
 

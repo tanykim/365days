@@ -15,6 +15,10 @@ angular.module('365daysApp').factory('analyzer', [
     var originalAllPlaces = [];
     var originalDuplicates = [];
 
+    //trip
+    var tracedTrips;
+    var userSetTrips;
+
     function getDuration(st, et, currentDate) {
 
         //trim if the segment starts from the previous day or end on the next day
@@ -94,33 +98,72 @@ angular.module('365daysApp').factory('analyzer', [
     this.setPeriod = function (st, et) {
         period = {
             startDate: st,
+            endDate: et,
             rangeLabel: [st.format('MMMM D, YYYY'), et.format('MMMM D, YYYY')],
             dayCount: et.diff(st, 'days') + 1
         };
     };
 
     this.getPlaceList = function (data) {
+
+        //sort data by day
+        data = _.sortBy(data, function (d) {
+            return d.date;
+        });
+
+        var prevPlaceLocation = undefined;
+        var trips = [];
+
         var placesGroupedByDay = _.flatten(_.compact(_.map(data, function (day) {
-                if (!_.isNull(day.segments)) {
-                    var placesInDay = _.compact(_.map(day.segments, function (seg) {
-                        var name = seg.place.name ? seg.place.name : seg.place.type;
-                        name = name === 'unknown' ? 'unnamed' : name;
-                        return {
-                            id: seg.place.id,
-                            name: name,
-                            location: { lat: seg.place.location.lat, lng: seg.place.location.lon },
-                            duration: getDuration(seg.startTime, seg.endTime, day.date),
-                            atMidnight: day.date !== seg.startTime.substring(0, 8) ? 1 : 0,
-                            logs: { dateIndex: toDayIndex(day.date), start: toFormatForVis(seg.startTime, day.date), end: toFormatForVis(seg.endTime, day.date) }
-                        };
-                    }));
-                    return groupPlacesById(placesInDay);
-                }
-            })));
+            if (!_.isNull(day.segments)) {
+
+                var placesInDay = _.compact(_.map(day.segments, function (seg, i) {
+                    var name = seg.place.name ? seg.place.name : seg.place.type;
+                    name = name === 'unknown' ? 'unnamed' : name;
+
+                    //check longitude for travel status
+                    if (_.isUndefined(prevPlaceLocation) && day.segments.length -1 === i) {
+                        prevPlaceLocation = seg.place.location;
+                    }
+                    //compare with the place with the previous day
+                    if (!_.isUndefined(prevPlaceLocation)) {
+                        //roughly one hour tiem zone difference
+                        if (Math.abs(prevPlaceLocation.lon - seg.place.location.lon) > 6) {
+                            //add traveled places
+                            trips.push({
+                                date: day.date,
+                                from: prevPlaceLocation,
+                                to: seg.place.location
+                            });
+                            prevPlaceLocation = seg.place.location;
+                        }
+                    }
+
+                    return {
+                        id: seg.place.id,
+                        name: name,
+                        location: { lat: seg.place.location.lat, lng: seg.place.location.lon },
+                        duration: getDuration(seg.startTime, seg.endTime, day.date),
+                        atMidnight: day.date !== seg.startTime.substring(0, 8) ? 1 : 0,
+                        logs: {
+                            dateIndex: toDayIndex(day.date),
+                            start: toFormatForVis(seg.startTime, day.date),
+                            end: toFormatForVis(seg.endTime, day.date)
+                        }
+                    };
+                }));
+                return groupPlacesById(placesInDay);
+            }
+        })));
 
         originalAllPlaces = groupPlacesById(placesGroupedByDay);
         allPlaces = angular.copy(originalAllPlaces);
+        tracedTrips = trips;
     };
+
+    /***
+    **** from places.js
+    ***/
 
     this.getPlaces = function (type) {
 
@@ -214,6 +257,18 @@ angular.module('365daysApp').factory('analyzer', [
         originalAllPlaces = [];
         originalDuplicates = [];
     };
+
+    /***
+    **** from trips.js
+    ***/
+
+    this.getTracedTrips = function () {
+        // console.log(JSON.stringify(tracedTrips));
+        return tracedTrips;
+    };
+    this.getDateRanges = function () {
+        return period;
+    }
 
     /***
     **** from vis.js

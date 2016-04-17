@@ -1,0 +1,32 @@
+<div ng-include src="'views/step.html'" ng-controller="StepsCtrl"></div>
+
+<div class="wrapper-left">
+    <h2> Add Trips </h2>
+    Let us know if you had any trips with time-zone change. Here are our suggestions.
+    <div ng-if="!loaded">
+        Analyzing your trips
+    </div>
+    <ul ng-if="loaded">
+        <li ng-repeat="trip in tripList track by $index">
+            <input type="checkbox" ng-model="selected[$index]">
+            {{ trip.date }} <strong>FROM</strong> {{ trip.from }} <strong>TO</strong> {{ trip.to }}
+            <!-- <span><a ng-click="updateUserSetTrips($index)">Add</a></span> -->
+        </li>
+    </ul>
+    <!-- Add a trip -->
+    <div><a ng-click="isAddOpen = !isAddOpen">Add a trip</a></div>
+    <div ng-show="isAddOpen">
+        <p class="input-group">
+            <input type="text" class="form-control" uib-datepicker-popup="MMMM dd, yyyy" ng-model="dt" show-weeks="false" placeholder="{{ minDate | amDateFormat: 'MMMM DD, YYYY'}}" is-open="datePicker.opened" min-date="minDate" max-date="maxDate" init-date="minDate" ng-required="true" show-button-bar="false" ng-change="setTripDate(this)">
+            <span class="input-group-btn">
+                <button type="button" class="btn btn-default" ng-click="open()"><i class="glyphicon glyphicon-calendar"></i></button>
+            </span>
+        </p>
+        <input type="text" ng-model="from" placeholder="From">
+        <input type="text" ng-model="to" placeholder="To">
+        <button type="button" class="btn btn-primary" ng-click="addTrip(); isAddOpen = true">Add</button>
+    </div>
+
+    <!-- Finish Button -->
+    <p><a class="btn btn-lg btn-success" ng-href="#/canvas">Next <span class="glyphicon glyphicon-ok"></span></a></p>
+</div>

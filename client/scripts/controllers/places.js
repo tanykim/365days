@@ -3,30 +3,33 @@
 /* select year, then select and customize places to visualize */
 
 angular.module('365daysApp').controller('PlacesCtrl', [
-    'moment', '_', '$scope', '$http', '$location', 'analyzer', 'leafletBoundsHelpers',
-    function (moment, _, $scope, $http, $location, analyzer, leafletBoundsHelpers) {
+    'moment', '_', '$scope', '$http', '$cookies', '$location', 'analyzer', 'leafletBoundsHelpers',
+    function (moment, _, $scope, $http, $cookies, $location, analyzer, leafletBoundsHelpers) {
 
         //map - set first to avoid leaflet error
         $scope.map = { center: {} };
 
-        // if (!analyzer.hasPlacesData()) {
-        //     $location.path('/year');
-        //     return false;
-        // } else {
-        //     $scope.map = { center: {} };
-        // }
+        if (!$cookies.get('firstDate')) {
+            $window.location = '/';
+            return false;
+        } else if (!analyzer.hasPlacesData()) {
+            $location.path('/year');
+            return false;
+        } else {
+            $scope.map = { center: {} };
+        }
 
         //testing
-        var tY = 2015;
-        $http.get('data/places/places_' + tY + '.json').then(function (d) {
-            analyzer.setYear(tY);
-            analyzer.getPlaceList(d.data);
-            getCandidates('home');
-            // $scope.completeStep(0);
-            // $scope.completeStep(1);
-            // $scope.completeStep(2);
-            // $scope.completeStep(3);
-        });
+        // var tY = 2015;
+        // $http.get('data/places/places_' + tY + '.json').then(function (d) {
+        //     analyzer.setYear(tY);
+        //     analyzer.getPlaceList(d.data);
+        //     getCandidates('home');
+        //     $scope.completeStep(0);
+        //     $scope.completeStep(1);
+        //     $scope.completeStep(2);
+        //     $scope.completeStep(3);
+        // });
 
         //markers
         $scope.highlighted = -1;
@@ -343,6 +346,6 @@ angular.module('365daysApp').controller('PlacesCtrl', [
         };
 
         //get candidates of home --comment when testing
-        //getCandidates('home');
+        getCandidates('home');
     }
 ]);

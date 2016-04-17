@@ -14,7 +14,7 @@ var server = http.createServer(app);
 
 require('./config/express')(app);
 require('./routes')(app);
-require('./moves')(app, server);
+require('./socketComm')(app, server);
 
 // Start server
 function startServer() {
