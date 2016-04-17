@@ -29,7 +29,7 @@
                 <input type="text" ng-model="typedPlace" uib-typeahead="place.name as place for place in namedPlaces | filter:{name:$viewValue} | limitTo:10" class="form-control" placeholder="Type a place name" typeahead-template-url="place.html" typeahead-on-select="addTypedPlace($item, step.label); typedPlace = '';" ng-blur="true">
             </div>
             <ol>
-                <li ng-repeat="p in candidates[step.label] | limitTo: 10 track by $index " class="{{ highlighted == $index ? 'highlighted' : '' }}">
+                <li ng-repeat="p in candidates[step.label] | limitTo: placeCount[step.label] track by $index " class="{{ highlighted == $index ? 'highlighted' : '' }}">
                     <input type="checkbox" ng-model="selected[step.label][$index]" ng-click="updateMarkerColor(step.label, $index)">
                     {{ p.name }} / {{ p.humanTime }} / {{ p.count }} days
                     <span><a ng-click="locateOnMap(step.label, $index)">Map</a></span>
@@ -82,4 +82,4 @@
 </div>
 
 <!-- map -->
-<leaflet markers="map.markers" bounds="map.bounds" class="wrapper-right"></leaflet>
+<leaflet markers="map.markers" bounds="map.bounds" lf-center="map.center" class="wrapper-right"></leaflet>

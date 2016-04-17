@@ -45,6 +45,7 @@ angular.module('365daysApp').controller('PlacesCtrl', [
         //selected home and work, others IDs
         $scope.candidates = {}; //home, work, and other places
         $scope.selected = {}; //true or false, selected candidates' index, used in checkbox ng-model
+        $scope.placeCount = { home: 10, work: 10, others: 10 }; //places count in the candidate list
         var selectUpto = 3; //default number of selection
         $scope.namedPlaces = []; //name places to use auto completion
         $scope.typedPlace = undefined;
@@ -96,17 +97,22 @@ angular.module('365daysApp').controller('PlacesCtrl', [
             };
         }
 
-        function addMarker(place, i) {
+        function addMarker(place, i, isTypedPlace) {
             var marker = _.extend(place, { icon: getMarkerIcon(i) });
-            $scope.map.markers.push(marker);
+            if (isTypedPlace) {
+                //put the markers as the first one if the added place is a typed one
+                $scope.map.markers.unshift(marker);
+            } else {
+                $scope.map.markers.push(marker);
+            }
         }
 
         function putMarkers(placelist) {
-            console.log('----get markers');
-            $scope.map.markers = _.map(placelist, function (p, i) {
+            var markers = _.map(placelist, function (p, i) {
                 p.icon = getMarkerIcon(i);
                 return p;
             });
+            $scope.map.markers = angular.copy(markers);
         }
 
         function setMapBoundaries(placelist) {
@@ -118,6 +124,8 @@ angular.module('365daysApp').controller('PlacesCtrl', [
         }
 
         function locateOnMap(type, i) {
+
+            console.log('---highlighting marker', i);
 
             //update the previously highlighted marker colors
             var prevMarker = $scope.map.markers[$scope.highlighted];
@@ -219,7 +227,9 @@ angular.module('365daysApp').controller('PlacesCtrl', [
                     updateStep(stepIndex + 1, 'not needed');
                     $scope.done = true;
                 } else {
-                    putMarkers($scope.duplicates[0]);
+                    var placelist = _.pluck($scope.duplicates[0], 'location');
+                    setMapBoundaries(placelist);
+                    putMarkers(placelist);
                 }
             } else if (stepIndex < $scope.steps.length - 2) { //get candidates of next places
                 getCandidates($scope.steps[stepIndex + 1].label);
@@ -230,10 +240,22 @@ angular.module('365daysApp').controller('PlacesCtrl', [
 
         //type place to search
         $scope.addTypedPlace = function (item, type) {
+
+            //shoe one more candidate in the list
+            $scope.placeCount[type]++;
+
+            //first, remove typed place from the candidate list
             var typedPlaceId = _.findIndex($scope.candidates[type], { id: item.id });
-            $scope.candidates[type].splice(typedPlaceId, 1); //remove typed place first from the candidate list
+            $scope.candidates[type].splice(typedPlaceId, 1);
+            $scope.map.markers.splice(typedPlaceId, 1);
+
+            //add the typed place on top of the current candidate list
             $scope.candidates[type].unshift(item); //add the typed place on top
             $scope.selected[type].unshift(true); //select it by default
+
+            //add a new marker to the newly added place
+            console.log('---add marker');
+            addMarker($scope.candidates[type][0].location, 0, true);
             locateOnMap(type, 0); //highlight on map
         };
 
@@ -266,7 +288,6 @@ angular.module('365daysApp').controller('PlacesCtrl', [
             //add a new marker to the newly added place
             var markerCount = $scope.map.markers.length;
             addMarker($scope.candidates[type][markerCount].location, markerCount);
-            locateOnMap(type, index);
         };
 
         //update location name
@@ -281,7 +302,7 @@ angular.module('365daysApp').controller('PlacesCtrl', [
         //merge locate
         $scope.mergeAt = function (index) { //index in the list
             $scope.mergingAt = index;
-            putMarkers($scope.duplicates[index]);
+            putMarkers(_.pluck($scope.duplicates[index], 'location'));
         };
         $scope.mergeDuplicates = function (index) {
             analyzer.mergeDuplicates(index, _.keys($scope.merged[index]));
