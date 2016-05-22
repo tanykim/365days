@@ -26,20 +26,29 @@ angular.module('365daysApp').controller('TripsCtrl', [
         $scope.selected = _.map(_.range(tracedTrips.length), function (i) {
             return true;
         });
-        socket.emit('trips', tracedTrips);
+
+        //transform TracedTrip with the location name (city, country) acquired from the API on the server side
+        //then process with Analyzer to merge trips and get round trips
         var locations = [];
-        $scope.tripList = _.map(angular.copy(tracedTrips), function (d) {
+        var singleTrips = _.map(angular.copy(tracedTrips), function (d) {
             return {
                 date: moment(d.date, 'YYYYMMDD'),
-                name: {}
+                timestamp: { from: d.from.timestamp, to: d.to.timestamp },
+                name: {},
+                offset: { from: null, to: null }
             };
         });
+        socket.emit('trips', tracedTrips);
         socket.on('location', function (location) {
             locations.push(location);
             if (locations.length === tracedTrips.length * 2) {
                 _.each(locations, function (d) {
-                    $scope.tripList[d.id].name[d.type] = d.name;
+                    singleTrips[d.id].name[d.type] = d.name;
+                    if (d.timezone.status === 'OK') {
+                        singleTrips[d.id].offset[d.type] = d.timezone.rawOffset;
+                    }
                 });
+                $scope.tripList = analyzer.getRoundTrips(singleTrips);
                 $scope.loaded = true;
             }
         });
@@ -49,13 +58,17 @@ angular.module('365daysApp').controller('TripsCtrl', [
             $scope.tripList.splice(index, 1);
             $scope.selected.splice(index, 1);
         };
-        //merge with the previous trip
-        $scope.mergeTrips = function (index) {
-            $scope.tripList[index - 1].to = $scope.tripList[index].to;
-            $scope.tripList[index - 1].name.to = $scope.tripList[index].name.to;
-            //remove the merged trip index
-            $scope.tripList.splice(index, 1);
-            $scope.selected.splice(index, 1);
+        //place name edit
+        $scope.isEditCollapsed = true;
+        $scope.newLocationNames = [];
+        //update location name
+        $scope.updateLocationName = function (index) {
+            console.log(index, $scope.tripList[index], $scope.newLocationNames[index]);
+            $scope.tripList[index].destination = $scope.newLocationNames[index];
+            $scope.newLocationNames[index] = '';
+        };
+        $scope.clearLocationName = function (index) {
+            $scope.newLocationNames[index] = '';
         };
 
         //for date picker
@@ -68,50 +81,54 @@ angular.module('365daysApp').controller('TripsCtrl', [
         $scope.open = function() {
             $scope.datePicker.opened = true;
         };
-        var addedTripDate = $scope.minDate;
-        $scope.setTripDate = function (e) {
-            addedTripDate = moment(new Date(e.dt));
+        $scope.addedTripDates = [$scope.minDate, $scope.minDate.clone().add(7, 'days')];
+        $scope.setTripDate = function (e, index) {
+            $scope.addedTripDates[index] = moment(new Date(e.dt));
         };
 
         //add trip
-        var newLocation = { name: {} };
+        var newLocation = { destination: null, startDate: null, endDate: null };
         $scope.searchTripGeocoding = function() {
+            console.log($scope.newTrip.typed);
             //valid input
-            if ($scope.newTrip.typed.from && $scope.newTrip.typed.to) {
-                newLocation = { name: {} };
+            if ($scope.newTrip.typed) {
+                newLocation = { destination: null };
                 socket.emit('newTrip', $scope.newTrip.typed);
             }
         };
         $scope.newTrip = { searched: false, newName: {} };
         socket.on('newTripLocation', function (loc) {
-            newLocation.name[loc.type] = loc.name;
+
+            newLocation.destination = loc.name;
             //change to new suggested name
-            if (newLocation.name.from && newLocation.name.to) {
+            if (newLocation.name) {
                 console.log(newLocation);
                 $scope.newTrip.searched = true;
-                $scope.newTrip.newName = newLocation.name;
+                $scope.newTrip.newName = newLocation.destination;
             }
         });
         //add the new location to trip list
         $scope.addTrip = function (useNewName) {
-            newLocation.date = addedTripDate;
+            console.log(useNewName);
+            newLocation.startDate = addedTripDates[0];
+            newLocation.endDate = addedTripDates[1];
             var newTripIndex = 0;
             for (var i = 0; i < $scope.tripList.length; i++ ) {
-                if ($scope.tripList[i].date.diff(addedTripDate, 'days') >= 0) {
+                if ($scope.tripList[i].startDate.diff(anewLocation.endDate, 'days') >= 0) {
                     newTripIndex = i;
                     break;
                 }
             }
             //use typed name
             if (!useNewName) {
-                newLocation.name = $scope.newTrip.typed;
+                newLocation.destination = $scope.newTrip.typed;
             }
             $scope.tripList.splice(newTripIndex, 0, newLocation);
             $scope.selected.splice(newTripIndex, 0, true);
 
             //reset
-            $scope.newTrip = { searched: false, newName: {} };
-            newLocation = { name: {} };
+            $scope.newTrip = { searched: false, newName: null };
+            newLocation = { destination: null };
             $scope.isAddOpen = false;
         };
 

@@ -122,23 +122,29 @@ angular.module('365daysApp').factory('analyzer', [
                     name = name === 'unknown' ? 'unnamed' : name;
 
                     //check longitude for travel status
-                    if (_.isUndefined(prevPlaceLocation) && day.segments.length -1 === i) {
+                    if (_.isUndefined(prevPlaceLocation) && day.segments.length - 1 === i) {
                         prevPlaceLocation = seg.place.location;
-                    }
-                    if (seg.place.location.lat == 0) {
-                        console.log(seg);
+                        //add the timestamp of the moment of leaving --> needed for place merging
+                        prevPlaceLocation.timestamp = moment(seg.endTime, 'YYYYMMDDTHHmmssZ').format('x');
                     }
                     //compare with the place with the previous day, exclode when lat and lon are 0
                     if (!_.isUndefined(prevPlaceLocation) && seg.place.location.lat !== 0 && seg.place.location.lon !== 0) {
-                        //roughly one hour tiem zone difference
-                        if (Math.abs(prevPlaceLocation.lon - seg.place.location.lon) > 6) {
-                            //add traveled places
+                        //roughly one hour timezone difference: longitude 6
+                        //include vertical trips too
+                        if (Math.abs(prevPlaceLocation.lon - seg.place.location.lon) > 6 ||
+                            Math.abs(prevPlaceLocation.lat - seg.place.location.lat) > 6) {
+                            //add traveled places, add timestamp of leaving momemnt
+                            var toInfo = _.extend(_.clone(seg.place.location), {
+                                    timestamp: moment(seg.startTime, 'YYYYMMDDTHHmmssZ').format('x')
+                                });
                             trips.push({
                                 date: day.date,
+                                //timestampe of the date, needed for Google timezone API on the server side
+                                timestamp: moment(day.date, 'YYYYMMDD').format('x') / 1000,
                                 from: prevPlaceLocation,
-                                to: seg.place.location
+                                to: toInfo
                             });
-                            prevPlaceLocation = seg.place.location;
+                            prevPlaceLocation = toInfo;
                         }
                     }
 
@@ -266,11 +272,68 @@ angular.module('365daysApp').factory('analyzer', [
     ***/
 
     this.getTracedTrips = function () {
-        // console.log(JSON.stringify(tracedTrips));
         return tracedTrips;
     };
     this.getDateRanges = function () {
         return period;
+    };
+    this.getRoundTrips = function (tripList) {
+
+        //merge trips if the trip happens within 24 hours -- assuming transfer
+        var mergedIds = [];
+        _.each(tripList, function (trip, i) {
+            if (i > 0) {
+                //hours between two trips;
+                var timeDiff = (trip.timestamp.to - trip.timestamp.from) / 3600000;
+                if (timeDiff < 24) {
+                    tripList[i - 1].offset.to = trip.offset.to;
+                    tripList[i - 1].name.to = trip.name.to;
+                    mergedIds.push(i);
+                }
+            }
+        });
+
+        //remove the merged trips from the list
+        _.each(mergedIds.reverse(), function (id) {
+            tripList.splice(id, 1);
+        });
+
+        //create roundTrips
+        var roundTrips = [];
+        var returnTripIds = [-1];
+        _.each(tripList, function (trip, i) {
+            if (i > 0) {
+                //check if it's a return trip from the previous trip
+                if (i - 1 > returnTripIds[returnTripIds.length - 1] && trip.offset.from === tripList[i - 1].offset.to) {
+                    roundTrips.push({
+                        startDate: tripList[i - 1].date,
+                        endDate: trip.date,
+                        destination: trip.name.from,
+                        offsetDiff: (trip.offset.from - trip.offset.to) / 3600
+                    });
+                    returnTripIds.push(i);
+                }
+            }
+        });
+
+        //check if the first and last trip are one-way trip
+        if (returnTripIds.indexOf(1) === -1) {
+            roundTrips.shift({
+                startDate: null,
+                endDate: tripList[0].date,
+                destination: tripList[0].name.from,
+                offsetDiff: (tripList[0].offset.from - tripList[0].offset.to) / 3600
+            });
+        }
+        if (returnTripIds[returnTripIds.length - 1] !== tripList.length) {
+            roundTrips.push({
+                startDate: tripList[tripList.length - 1].date,
+                endDate: null,
+                destination: tripList[tripList.length - 1].name.to,
+                offsetDiff: (tripList[tripList.length - 1].offset.to - tripList[tripList.length - 1].offset.from) / 3600
+            });
+        }
+        return roundTrips;
     };
     this.setUserSelectedTrips = function (tripList) {
         userSetTrips = _.map(angular.copy(tripList), function (trip) {

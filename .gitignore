@@ -10,3 +10,4 @@ npm-debug.log
 client/styles/*.css
 client/data/places
 .DS_Store
+TODO.md

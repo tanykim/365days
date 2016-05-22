@@ -1,43 +1,72 @@
 <div ng-include src="'views/step.html'" ng-controller="StepsCtrl"></div>
 
-<div class="wrapper-left">
+<div class="wrapper-all">
     <h2> Add Trips </h2>
     Let us know if you had any trips with time-zone change. Here are our suggestions.
     <div ng-if="!loaded">
         Analyzing your trips
     </div>
     <div ng-if="loaded">
-        <div ng-repeat="trip in tripList track by $index" class="trip-list">
-            <div class="check-box"><input type="checkbox" ng-model="selected[$index]"></div>
-            <div class="date">{{ trip.date | amDateFormat:'MMM DD YYYY (ddd)'}}</div>
-            <div class="itinerary">
-                <div class="location-name">{{ trip.name.from }}</div>
-                <div class="location-name"><i class="fa fa-arrow-down" aria-hidden="true"></i></div>
-                <div class="location-name">{{ trip.name.to }}</div>
-            </div>
-            <div><span><a ng-click="removeTrip($index)">delete</span></div>
-            <div ng-if="(trip.date | amDateFormat: 'YYYYMMDD') == (tripList[$index - 1].date | amDateFormat: 'YYYYMMDD')" class="merge">
-                <span><a ng-click="mergeTrips($index)">merge</span>
-            </div>
-        </div>
+        <table>
+            <tr class="trip-list">
+                <th> Select </th>
+                <th> Trip Dates </th>
+                <th> Destination </th>
+                <th> Edit </th>
+            </tr>
+            <tr ng-repeat="trip in tripList track by $index" class="trip-list">
+                <td><input type="checkbox" ng-model="selected[$index]"></td>
+                <td>
+                    {{ trip.startDate | amDateFormat:'MMM DD YYYY (ddd)' }} -
+                    {{ trip.endDate | amDateFormat:'MMM DD YYYY (ddd)' }}
+                </td>
+                <td>
+                    <div ng-show="isEditCollapsed">
+                        {{ trip.destination }}
+                        <span ng-if="trip.offsetDiff > 0">(+{{ trip.offsetDiff }} hour<span ng-if="trip.offsetDiff > 1">s</span>)
+                        </span>
+                        <span ng-if="trip.offsetDiff < 0">(-{{ trip.offsetDiff }} hour<span ng-if="trip.offsetDiff < -1">s</span>)
+                        </span>
+                    </div>
+                    <div ng-hide="isEditCollapsed">
+                        <input type="text" class="form-control" ng-model="newLocationNames[$index]" placeholder="{{ trip.destination }}" ng-click="clearLocationName($index)">
+                        <button type="button" class="btn btn-primary" ng-click="updateLocationName($index); isEditCollapsed = true">Done</button>
+                    </div>
+                </td>
+                <td>
+                    <a ng-click="isEditCollapsed = !isEditCollapsed">Update</a>
+                    <a ng-click="removeTrip($index)">Delete</a>
+                </td>
+            </tr>
+        </table>
     </div>
+
     <!-- Add a trip -->
     <div><a ng-click="isAddOpen = !isAddOpen">Add a trip</a></div>
     <div ng-show="isAddOpen">
-        <p class="input-group">
-            <input type="text" class="form-control" uib-datepicker-popup="MMMM dd, yyyy" ng-model="dt" show-weeks="false" placeholder="{{ minDate | amDateFormat: 'MMMM DD, YYYY' }}" is-open="datePicker.opened" min-date="minDate" max-date="maxDate" init-date="minDate" ng-required="true" show-button-bar="false" ng-change="setTripDate(this)">
+        <p class="input-group" ng-repeat="date in ['Depatrue', 'Return'] track by $index">
+            <span>{{ date }} :</span>
+            <input type="text" class="form-control" uib-datepicker-popup="MMMM dd, yyyy" ng-model="dt" show-weeks="false" placeholder="{{ addedTripDates[$index] | amDateFormat: 'MMMM DD, YYYY' }}" is-open="datePicker.opened" min-date="minDate" max-date="maxDate" init-date="addedTripDates[$index]" ng-required="true" show-button-bar="false" ng-change="setTripDate(this, $index)">
             <span class="input-group-btn">
                 <button type="button" class="btn btn-default" ng-click="open()"><i class="glyphicon glyphicon-calendar"></i></button>
             </span>
         </p>
-        <input type="text" ng-model="newTrip.typed.from" placeholder="San Francisco">
-        <input type="text" ng-model="newTrip.typed.to" placeholder="Paris">
+<!--         <p class="input-group">
+            Return:
+            <input type="text" class="form-control" uib-datepicker-popup="MMMM dd, yyyy" ng-model="dt" show-weeks="false" placeholder="{{ minDate | amDateFormat: 'MMMM DD, YYYY' }}" is-open="datePicker.opened" min-date="minDate" max-date="maxDate" init-date="addedTripDate[1]" ng-required="true" show-button-bar="false" ng-change="setTripDate(this, 1)">
+            <span class="input-group-btn">
+                <button type="button" class="btn btn-default" ng-click="open()"><i class="glyphicon glyphicon-calendar"></i></button>
+            </span>
+        </p> -->
+
+        <!-- <input type="text" ng-model="newTrip.typed.from" placeholder="San Francisco"> -->
+        <input type="text" ng-model="newTrip.typed" placeholder="Enter a destination (e.g., Paris)">
         <button type="button" class="btn btn-primary" ng-click="searchTripGeocoding(); isAddOpen = true">Add</button>
         <div ng-if="newTrip.searched">
             We found <br/>
-            <strong>{{ newTrip.newName.from }}</strong> for {{ newTrip.typed.from }} and <br/>
-            <strong>{{ newTrip.newName.to }}</strong> for {{ newTrip.typed.to }}.<br/>
-            Want to add with these names?
+            <!-- <strong>{{ newTrip.newName.from }}</strong> for {{ newTrip.typed.from }} and <br/> -->
+            <strong>{{ newTrip.newName }}</strong> for {{ newTrip.typed }}.<br/>
+            Want to add with this name?
             <div><a ng-click="addTrip(true)">YES</a></div>
             <div><a ng-click="addTrip(false)">NO - use what I typed</a></div>
         </div>
