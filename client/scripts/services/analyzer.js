@@ -96,9 +96,12 @@ angular.module('365daysApp').factory('analyzer', [
     };
 
     this.setPeriod = function (st, et) {
+        //actual end date if this year is selected
+        var thisYearEndDate = et.year() === moment().year() ? moment() : et;
         period = {
             startDate: st,
             endDate: et,
+            thisYearEndDate: thisYearEndDate,
             rangeLabel: [st.format('MMMM D, YYYY'), et.format('MMMM D, YYYY')],
             dayCount: et.diff(st, 'days') + 1
         };

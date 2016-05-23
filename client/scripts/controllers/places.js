@@ -20,7 +20,7 @@ angular.module('365daysApp').controller('PlacesCtrl', [
         // }
 
         //testing
-        var tY = 2015;
+        var tY = 2016;
         $http.get('data/places/places_' + tY + '.json').then(function (d) {
             analyzer.setYear(tY);
             analyzer.getPlaceList(d.data);

@@ -21,7 +21,6 @@ angular.module('365daysApp').controller('TripsCtrl', [
         }
 
         //find traveled places
-        //$scope.error = null;
         $scope.loaded = false;
         var tracedTrips = analyzer.getTracedTrips();
         $scope.selected = _.map(_.range(tracedTrips.length), function (i) {
@@ -85,7 +84,7 @@ angular.module('365daysApp').controller('TripsCtrl', [
         //for date picker
         var dateRange = analyzer.getDateRanges();
         $scope.minDate = dateRange.startDate;
-        $scope.maxDate = dateRange.endDate;
+        $scope.maxDate = dateRange.thisYearEndDate.clone().add(-1, 'days');
         $scope.datePicker = [{ opened: false }, { opened: false }];
         $scope.open = function(index) {
             $scope.datePicker[index].opened = true;
@@ -120,6 +119,13 @@ angular.module('365daysApp').controller('TripsCtrl', [
                         $scope.maxDate = $scope.minDate.clone().add(maxDateOffset, 'days');
                     }
                 }
+                var todayOffset = moment().clone().diff($scope.addedTripDates[0], 'days');
+                //if the selected start date is today
+                if (todayOffset === 1) {
+                    $scope.maxDate = dateRange.thisYearEndDate;
+                }
+                $scope.addedTripDates[1] = $scope.addedTripDates[0].clone()
+                    .add(Math.min(7, todayOffset), 'days');
             }
         };
 
@@ -138,7 +144,7 @@ angular.module('365daysApp').controller('TripsCtrl', [
             }
             //reset min and max date
             $scope.minDate = dateRange.startDate;
-            $scope.maxDate = dateRange.endDate;
+            $scope.maxDate = dateRange.thisYearEndDate;
             //set the next trip after the last endDate
             if (!_.isEmpty($scope.tripList)) {
                 var led = $scope.tripList[$scope.tripList.length - 1].endDate;
