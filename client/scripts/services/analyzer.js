@@ -16,8 +16,8 @@ angular.module('365daysApp').factory('analyzer', [
     var originalDuplicates = [];
 
     //trip
-    var tracedTrips;
-    var userSetTrips;
+    var tracedTrips = [];
+    var userSetTrips = [];
 
     function getDuration(st, et, currentDate) {
 
@@ -336,12 +336,16 @@ angular.module('365daysApp').factory('analyzer', [
         return roundTrips;
     };
     this.setUserSelectedTrips = function (tripList) {
-        userSetTrips = _.map(angular.copy(tripList), function (trip) {
-            return {
-                dateIndex: toDayIndex(trip.date.format('YYYYMMDD')),
-                itinerary: trip.name
-            };
-        });
+        if (!_.isEmpty(tripList)) {
+            userSetTrips = _.map(angular.copy(tripList), function (trip) {
+                return {
+                    startDateId: toDayIndex(trip.startDate.format('YYYYMMDD')),
+                    endDateId: toDayIndex(trip.endDate.format('YYYYMMDD')),
+                    destination: trip.destination,
+                    offsetDiff: trip.offsetDiff
+                };
+            });
+        }
     };
 
     /***

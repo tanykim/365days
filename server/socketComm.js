@@ -59,35 +59,32 @@ module.exports = function(app, server) {
     }
 
     function reverseGeocoding(id, type, lat, lng, timestamp) {
-
-        //TODO: handle daily limit error
-// [Error: Status is OVER_QUERY_LIMIT. You have exceeded your daily request quota for this API.] { raw:
-//    { error_message: 'You have exceeded your daily request quota for this API.',
-//      results: [],
-//      status: 'OVER_QUERY_LIMIT' } }
         geocoder.reverse({ lat:lat, lon:lng }, function (err, res) {
             console.log(err, res);
             var name = lat + ', ' + lng;
             if (_.isArray(res)) {
                 name = (res[0].city ? (res[0].city + ', ') : '') + res[0].country;
                 getTimezone(lat, lng, timestamp, name, id, type);
+            } else {
+                io.emit('location', {
+                    error: res.raw.error_message
+                });
             }
         });
     }
 
     function getGeocoding(address) {
         console.log(address);
-        // { raw:
-        //    { error_message: 'You have exceeded your daily request quota for this API.',
-        //      results: [],
-        //      status: 'OVER_QUERY_LIMIT' } }
         geocoder.geocode({ address: address }, function (err, res) {
             console.log(res);
             var name = address;
+            var error = false;
             if (_.isArray(res) && !_.isEmpty(res)) {
-               name = (res[0].city ? (res[0].city + ', ') : '') + res[0].country;
+                name = (res[0].city ? (res[0].city + ', ') : '') + res[0].country;
+            } else {
+                error = true;
             }
-            io.emit('newTripLocation', { name: name });
+            io.emit('newTripLocation', { name: name, error: true });
         });
     }
 

@@ -122,31 +122,48 @@ angular.module('365daysApp').factory('visualizer', [
 
     function drawTrips(g, trip, startDate, dayUnit) {
 
-        var x1, x2, y1, y2;
+        var x1s, x2s, x1e, x2e, y1s, y2s, y1e, y2e, tx, ty;
         if (options.orientation === 'landscape') {
-            x1 = dayUnit * trip.dateIndex;
-            x2 = dayUnit * trip.dateIndex;
-            y1 = dim.h;
-            y2 = dim.h + margin.gap;
+            x1s = dayUnit * trip.startDateId;
+            x2s = dayUnit * trip.startDateId;
+            x1e = dayUnit * trip.endDateId;
+            x2e = dayUnit * trip.endDateId;
+            y1s = dim.h;
+            y2s = dim.h + margin.gap;
+            y1e = dim.h;
+            y2e = dim.h + margin.gap;
+            tx = (x1s + x1e) / 2;
+            ty = dim.h + margin.gap;
         } else {
-            x1 = dim.w;
-            x2 = dim.w + margin.gap;
-            y1 = dayUnit * trip.dateIndex;
-            y2 = dayUnit * trip.dateIndex;
+            x1s = dim.w;
+            x2s = dim.w + margin.gap;
+            x1e = dim.w;
+            x2e = dim.w + margin.gap;
+            y1s = dayUnit * trip.startDateId;
+            y2s = dayUnit * trip.startDateId;
+            y1e = dayUnit * trip.endDateId;
+            y2e = dayUnit * trip.endDateId;
+            tx = dim.w;
+            ty = (y1s + y1e) / 2
         }
-        var currentDate = startDate.clone().add(trip.dateIndex, 'days');
 
-        //TODO: tailor the poisition depending on departure/arrival
+        //TODO: CSS for position
         g.append('line')
-            .attr('x1', x1)
-            .attr('x2', x2)
-            .attr('y1', y1)
-            .attr('y2', y2)
+            .attr('x1', x1s)
+            .attr('x2', x2s)
+            .attr('y1', y1s)
+            .attr('y2', y2s)
+            .attr('class', 'stroke-1 stroke-black');
+        g.append('line')
+            .attr('x1', x1e)
+            .attr('x2', x2e)
+            .attr('y1', y1e)
+            .attr('y2', y2e)
             .attr('class', 'stroke-1 stroke-black');
         g.append('text')
-            .attr('x', x1)
-            .attr('y', y1)
-            .text(trip.itinerary.from + ' >> ' + trip.itinerary.to)
+            .attr('x', tx)
+            .attr('y', ty)
+            .text(trip.destination)
             .attr('class', 'size-small fill-black');
     }
 

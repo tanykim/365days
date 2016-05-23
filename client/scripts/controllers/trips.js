@@ -21,6 +21,7 @@ angular.module('365daysApp').controller('TripsCtrl', [
         }
 
         //find traveled places
+        //$scope.error = null;
         $scope.loaded = false;
         var tracedTrips = analyzer.getTracedTrips();
         $scope.selected = _.map(_.range(tracedTrips.length), function (i) {
@@ -30,7 +31,8 @@ angular.module('365daysApp').controller('TripsCtrl', [
         //transform TracedTrip with the location name (city, country) acquired from the API on the server side
         //then process with Analyzer to merge trips and get round trips
         var locations = [];
-        var singleTrips = _.map(angular.copy(tracedTrips), function (d) {
+        $scope.tripList = [];
+        var tripsWithName = _.map(angular.copy(tracedTrips), function (d) {
             return {
                 date: moment(d.date, 'YYYYMMDD'),
                 timestamp: { from: d.from.timestamp, to: d.to.timestamp },
@@ -38,20 +40,29 @@ angular.module('365daysApp').controller('TripsCtrl', [
                 offset: { from: null, to: null }
             };
         });
-        socket.emit('trips', tracedTrips);
-        socket.on('location', function (location) {
-            locations.push(location);
-            if (locations.length === tracedTrips.length * 2) {
-                _.each(locations, function (d) {
-                    singleTrips[d.id].name[d.type] = d.name;
-                    if (d.timezone.status === 'OK') {
-                        singleTrips[d.id].offset[d.type] = d.timezone.rawOffset;
-                    }
-                });
-                $scope.tripList = analyzer.getRoundTrips(singleTrips);
-                $scope.loaded = true;
-            }
-        });
+        if (!_.isEmpty(tracedTrips)) {
+            socket.emit('trips', tracedTrips);
+            socket.on('location', function (location) {
+                locations.push(location);
+                if (location.error) {
+                    $scope.error = location.error;
+                    $scope.loaded = true;
+                }
+                else if (locations.length === tracedTrips.length * 2) {
+                    _.each(locations, function (d) {
+                        tripsWithName[d.id].name[d.type] = d.name;
+                        if (d.timezone.status === 'OK') {
+                            tripsWithName[d.id].offset[d.type] = d.timezone.rawOffset;
+                        }
+                    });
+                    $scope.tripList = analyzer.getRoundTrips(tripsWithName);
+                    $scope.loaded = true;
+                }
+            });
+        } else {
+            $scope.error = "No trips are found";
+            $scope.loaded = true;
+        }
 
         //remove trip
         $scope.removeTrip = function (index) {
@@ -75,56 +86,62 @@ angular.module('365daysApp').controller('TripsCtrl', [
         var dateRange = analyzer.getDateRanges();
         $scope.minDate = dateRange.startDate;
         $scope.maxDate = dateRange.endDate;
-        $scope.datePicker = {
-            opened: false
-        };
-        $scope.open = function() {
-            $scope.datePicker.opened = true;
+        $scope.datePicker = [{ opened: false }, { opened: false }];
+        $scope.open = function(index) {
+            $scope.datePicker[index].opened = true;
         };
         $scope.addedTripDates = [$scope.minDate, $scope.minDate.clone().add(7, 'days')];
         $scope.setTripDate = function (e, index) {
+            console.log(index);
             $scope.addedTripDates[index] = moment(new Date(e.dt));
         };
 
         //add trip
         var newLocation = { destination: null, startDate: null, endDate: null };
         $scope.searchTripGeocoding = function() {
-            console.log($scope.newTrip.typed);
             //valid input
             if ($scope.newTrip.typed) {
-                newLocation = { destination: null };
-                socket.emit('newTrip', $scope.newTrip.typed);
+                //no sever error previously
+                if (!$scope.error) {
+                    newLocation = { destination: null };
+                    socket.emit('newTrip', $scope.newTrip.typed);
+                } else {
+                    $scope.addTrip(false);
+                }
             }
         };
-        $scope.newTrip = { searched: false, newName: {} };
+        $scope.newTrip = { searched: false, newName: null };
         socket.on('newTripLocation', function (loc) {
-
-            newLocation.destination = loc.name;
-            //change to new suggested name
-            if (newLocation.name) {
-                console.log(newLocation);
+            if (!loc.error) {
+                //change to new suggested name
+                newLocation.destination = loc.name;
                 $scope.newTrip.searched = true;
                 $scope.newTrip.newName = newLocation.destination;
+            } else {
+                $scope.addTrip(false);
             }
         });
         //add the new location to trip list
         $scope.addTrip = function (useNewName) {
-            console.log(useNewName);
-            newLocation.startDate = addedTripDates[0];
-            newLocation.endDate = addedTripDates[1];
+            newLocation.startDate = $scope.addedTripDates[0];
+            newLocation.endDate = $scope.addedTripDates[1];
+            //TODO: add offsetDiff in the new trip
+            newLocation.offsetDiff = '';
             var newTripIndex = 0;
-            for (var i = 0; i < $scope.tripList.length; i++ ) {
-                if ($scope.tripList[i].startDate.diff(anewLocation.endDate, 'days') >= 0) {
-                    newTripIndex = i;
-                    break;
+            for (var i = 0; i < $scope.tripList.length; i++) {
+                if ($scope.tripList[i].startDate.diff(newLocation.endDate, 'days') <= 0) {
+                    newTripIndex = i + 1;
                 }
             }
+
             //use typed name
             if (!useNewName) {
                 newLocation.destination = $scope.newTrip.typed;
             }
             $scope.tripList.splice(newTripIndex, 0, newLocation);
             $scope.selected.splice(newTripIndex, 0, true);
+
+            //TODO: disable dates on and before the start date
 
             //reset
             $scope.newTrip = { searched: false, newName: null };
