@@ -48,7 +48,7 @@
     <div ng-show="isAddOpen">
         <p class="input-group" ng-repeat="date in ['Depatrue', 'Return'] track by $index">
             <span>{{ date }} :</span>
-            <input type="text" class="form-control" uib-datepicker-popup="MMMM dd, yyyy" ng-model="dt" show-weeks="false" placeholder="{{ addedTripDates[$index] | amDateFormat: 'MMMM DD, YYYY' }}" is-open="datePicker[$index].opened" min-date="minDate" max-date="maxDate" init-date="addedTripDates[$index]" ng-required="true" show-button-bar="false" ng-change="setTripDate(this, $index)">
+            <input type="text" class="form-control" uib-datepicker-popup="MMMM dd, yyyy" ng-model="dt" show-weeks="false" placeholder="{{ addedTripDates[$index] | amDateFormat: 'MMMM DD, YYYY' }}" is-open="datePicker[$index].opened" min-date="minDate" max-date="maxDate" init-date="addedTripDates[$index]" date-disabled="dateDisabled(date, mode)" ng-required="true" show-button-bar="false" ng-change="setTripDate(this, $index)">
             <span class="input-group-btn">
                 <button type="button" class="btn btn-default" ng-click="open($index)"><i class="glyphicon glyphicon-calendar"></i></button>
             </span>

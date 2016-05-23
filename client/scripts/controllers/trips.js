@@ -91,9 +91,36 @@ angular.module('365daysApp').controller('TripsCtrl', [
             $scope.datePicker[index].opened = true;
         };
         $scope.addedTripDates = [$scope.minDate, $scope.minDate.clone().add(7, 'days')];
+
+        //disable dates previously selected dates
+        $scope.dateDisabled = function (date, mode) {
+            //check if each date is overlaped with the trip list
+            var hasOverlaps = _.size(_.compact(_.map(angular.copy($scope.tripList), function (trip) {
+                var inRange = trip.startDate.diff(date, 'days') * trip.endDate.diff(date, 'days');
+                return inRange <= 0 ? true : false;
+            })));
+            return hasOverlaps > 0 && mode === 'day';
+        };
+
         $scope.setTripDate = function (e, index) {
-            console.log(index);
-            $scope.addedTripDates[index] = moment(new Date(e.dt));
+            var nd = moment(new Date(e.dt));
+            $scope.addedTripDates[index] = nd;
+            //set min and max date of the endDate when startDate is selected
+            if (index === 0) {
+                $scope.minDate = nd.clone().add(1, 'days');
+                if (!_.isEmpty($scope.tripList)) {
+                    var maxDateOffset = 0;
+                    _.each(_.pluck($scope.tripList, 'startDate'), function (sd) {
+                        var diff = sd.diff($scope.minDate, 'days');
+                        if (diff > 0) {
+                            maxDateOffset = Math.max(diff, maxDateOffset);
+                        }
+                    });
+                    if (maxDateOffset > 0) {
+                        $scope.maxDate = $scope.minDate.clone().add(maxDateOffset, 'days');
+                    }
+                }
+            }
         };
 
         //add trip
@@ -108,6 +135,14 @@ angular.module('365daysApp').controller('TripsCtrl', [
                 } else {
                     $scope.addTrip(false);
                 }
+            }
+            //reset min and max date
+            $scope.minDate = dateRange.startDate;
+            $scope.maxDate = dateRange.endDate;
+            //set the next trip after the last endDate
+            if (!_.isEmpty($scope.tripList)) {
+                var led = $scope.tripList[$scope.tripList.length - 1].endDate;
+                $scope.addedTripDates = [led.clone().add(7, 'days'), led.clone().add(14, 'days')];
             }
         };
         $scope.newTrip = { searched: false, newName: null };
@@ -125,6 +160,7 @@ angular.module('365daysApp').controller('TripsCtrl', [
         $scope.addTrip = function (useNewName) {
             newLocation.startDate = $scope.addedTripDates[0];
             newLocation.endDate = $scope.addedTripDates[1];
+
             //TODO: add offsetDiff in the new trip
             newLocation.offsetDiff = '';
             var newTripIndex = 0;
@@ -140,8 +176,6 @@ angular.module('365daysApp').controller('TripsCtrl', [
             }
             $scope.tripList.splice(newTripIndex, 0, newLocation);
             $scope.selected.splice(newTripIndex, 0, true);
-
-            //TODO: disable dates on and before the start date
 
             //reset
             $scope.newTrip = { searched: false, newName: null };
