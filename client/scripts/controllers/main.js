@@ -18,16 +18,17 @@ angular.module('365daysApp').controller('MainCtrl', [
         $scope.hasValidCookies = false;
 
         function updateTokenStatus(status) {
-             $scope.hasValidToken = status;
+            $scope.hasValidToken = status;
+            $scope.checkingValidCookies = false;
         }
 
         if ($cookies.get('token')) {
+            $scope.checkingValidCookies = true;
             cookieManager.checkTokenValidity(updateTokenStatus);
             $scope.hasFirstDateCookie = $cookies.get('firstDate');
         }
 
         $scope.$watchGroup(['hasValidToken', 'hasFirstDateCookie'], function (newVal, oldVal) {
-            console.log(newVal, oldVal);
             if (newVal[0] && newVal[1]) {
                 $scope.hasValidCookies = true;
             }

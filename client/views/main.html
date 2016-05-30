@@ -5,6 +5,8 @@
         Powered by <a href="https://www.moves-app.com/" target="_blank">Moves</a>
     </p>
 
+    <p ng-show="checkingValidCookies"> Checking if already signed in... </p>
+
     <p ng-show="hasValidCookies">Already signed in <a class="btn btn-success" href="/#year">Go forward<span class="glyphicon glyphicon-ok"></span></a></p>
 
     <p><a class="btn btn-lg btn-success" ng-click="authenticateMoves()">Sign with with Moves <span class="glyphicon glyphicon-ok"></span></a></p>
