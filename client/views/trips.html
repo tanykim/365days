@@ -5,9 +5,11 @@
     Let us know if you had any trips with time-zone change. Here are our suggestions.
     <div ng-if="!loaded">
         <h3>Analyzing your trips...</h3>
+        <p> {{ progress }} % </p>
     </div>
     <div ng-if="loaded && error">
         <h3>{{ error }} <br/> Please enter your trips manually.</h3>
+    </div>
     <div ng-if="loaded && tripList.length > 0">
         <table>
             <tr class="trip-list">
@@ -27,7 +29,7 @@
                         {{ trip.destination }}
                         <span ng-if="trip.offsetDiff > 0">(+{{ trip.offsetDiff }} hour<span ng-if="trip.offsetDiff > 1">s</span>)
                         </span>
-                        <span ng-if="trip.offsetDiff < 0">(-{{ trip.offsetDiff }} hour<span ng-if="trip.offsetDiff < -1">s</span>)
+                        <span ng-if="trip.offsetDiff < 0">({{ trip.offsetDiff }} hour<span ng-if="trip.offsetDiff < -1">s</span>)
                         </span>
                     </div>
                     <div ng-hide="isEditCollapsed">

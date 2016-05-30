@@ -41,8 +41,7 @@ module.exports = function(app, server) {
             });
             apiRes.on('end', function () {
                 var results = JSON.parse(data);
-                console.log('--end');
-                console.log(results);
+                console.log(id, name);
                 io.emit('location', {
                     id: id,
                     type: type,
@@ -60,23 +59,22 @@ module.exports = function(app, server) {
 
     function reverseGeocoding(id, type, lat, lng, timestamp) {
         geocoder.reverse({ lat:lat, lon:lng }, function (err, res) {
-            console.log(err, res);
+            // console.log(err, res);
             var name = lat + ', ' + lng;
             if (_.isArray(res)) {
                 name = (res[0].city ? (res[0].city + ', ') : '') + res[0].country;
                 getTimezone(lat, lng, timestamp, name, id, type);
             } else {
+                console.log(res);
                 io.emit('location', {
-                    error: res.raw.error_message
+                    error: res.raw ? res.raw.error_message : 'Cannot access reverse geocoding service.'
                 });
             }
         });
     }
 
     function getGeocoding(address) {
-        console.log(address);
         geocoder.geocode({ address: address }, function (err, res) {
-            console.log(res);
             var name = address;
             var error = false;
             if (_.isArray(res) && !_.isEmpty(res)) {

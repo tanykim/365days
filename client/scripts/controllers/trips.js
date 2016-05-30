@@ -22,39 +22,53 @@ angular.module('365daysApp').controller('TripsCtrl', [
 
         //find traveled places
         $scope.loaded = false;
+        $scope.progress = 0;
         var tracedTrips = analyzer.getTracedTrips();
         $scope.selected = _.map(_.range(tracedTrips.length), function (i) {
             return true;
         });
 
-        //transform TracedTrip with the location name (city, country) acquired from the API on the server side
-        //then process with Analyzer to merge trips and get round trips
-        var locations = [];
+        //transform TracedTrip in the server 1) add location name (city, country) via reverse geocoding, then
+        //2) get timezone (with google timezone api)
+        //then process with Analyzer to merge trips and get roundtrips
+
         $scope.tripList = [];
-        var tripsWithName = _.map(angular.copy(tracedTrips), function (d) {
+
+        function getLocationInfo(id, type) {
+            var loc = _.findWhere(angular.copy(locations), { id: id, type: type });
             return {
-                date: moment(d.date, 'YYYYMMDD'),
-                timestamp: { from: d.from.timestamp, to: d.to.timestamp },
-                name: {},
-                offset: { from: null, to: null }
+                name: loc.name,
+                offset: loc.timezone.status === 'OK' ? loc.timezone.rawOffset : null
             };
-        });
+        }
+
         if (!_.isEmpty(tracedTrips)) {
+
+            //emit each trip, get two locations per trip (from, to)
             socket.emit('trips', tracedTrips);
+
+            var locations = [];
             socket.on('location', function (location) {
-                locations.push(location);
                 if (location.error) {
                     $scope.error = location.error;
                     $scope.loaded = true;
+                } else {
+                    locations.push(location);
+                    $scope.progress = Math.round(locations.length / (tracedTrips.length * 2) * 100);
                 }
-                else if (locations.length === tracedTrips.length * 2) {
-                    _.each(locations, function (d) {
-                        tripsWithName[d.id].name[d.type] = d.name;
-                        if (d.timezone.status === 'OK') {
-                            tripsWithName[d.id].offset[d.type] = d.timezone.rawOffset;
-                        }
+                //get round trips when all locations are received
+                if (locations.length === tracedTrips.length * 2) {
+                    var tripsWithInfo = _.map(angular.copy(tracedTrips), function (d, i) {
+                        var fromInfo = getLocationInfo(i, 'from');
+                        var toInfo = getLocationInfo(i, 'to');
+                        return {
+                            date: moment(d.date, 'YYYYMMDD'),
+                            timestamp: { from: d.from.timestamp, to: d.to.timestamp },
+                            name: { from: fromInfo.name, to: toInfo.name },
+                            offset: { from: fromInfo.offset, to: toInfo.offset }
+                        };
                     });
-                    $scope.tripList = analyzer.getRoundTrips(tripsWithName);
+                    $scope.tripList = analyzer.getRoundTrips(angular.copy(tripsWithInfo));
                     $scope.loaded = true;
                 }
             });
@@ -73,7 +87,6 @@ angular.module('365daysApp').controller('TripsCtrl', [
         $scope.newLocationNames = [];
         //update location name
         $scope.updateLocationName = function (index) {
-            console.log(index, $scope.tripList[index], $scope.newLocationNames[index]);
             $scope.tripList[index].destination = $scope.newLocationNames[index];
             $scope.newLocationNames[index] = '';
         };

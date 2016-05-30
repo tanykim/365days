@@ -130,7 +130,7 @@ angular.module('365daysApp').factory('analyzer', [
                         //add the timestamp of the moment of leaving --> needed for place merging
                         prevPlaceLocation.timestamp = moment(seg.endTime, 'YYYYMMDDTHHmmssZ').format('x');
                     }
-                    //compare with the place with the previous day, exclode when lat and lon are 0
+                    //compare with the place with the previous day, exclude when lat and lon are 0
                     if (!_.isUndefined(prevPlaceLocation) && seg.place.location.lat !== 0 && seg.place.location.lon !== 0) {
                         //roughly one hour timezone difference: longitude 6
                         //include vertical trips too
@@ -286,7 +286,7 @@ angular.module('365daysApp').factory('analyzer', [
         var mergedIds = [];
         _.each(tripList, function (trip, i) {
             if (i > 0) {
-                //hours between two trips;
+                //hours between two trips
                 var timeDiff = (trip.timestamp.to - trip.timestamp.from) / 3600000;
                 if (timeDiff < 24) {
                     tripList[i - 1].offset.to = trip.offset.to;
@@ -304,10 +304,18 @@ angular.module('365daysApp').factory('analyzer', [
         //create roundTrips
         var roundTrips = [];
         var returnTripIds = [-1];
+
+        //check if it's a return trip from the previous trip
         _.each(tripList, function (trip, i) {
             if (i > 0) {
-                //check if it's a return trip from the previous trip
-                if (i - 1 > returnTripIds[returnTripIds.length - 1] && trip.offset.from === tripList[i - 1].offset.to) {
+
+                var isBtwSameTz = trip.offset.from === tripList[i - 1].offset.to &&
+                    trip.offset.to === tripList[i - 1].offset.from;
+                var isBtwSameName = trip.name.from === tripList[i - 1].name.to &&
+                    trip.name.to === tripList[i - 1].name.from;
+
+                //check with the previous trip that is not the return trip
+                if (i - 1 > returnTripIds[returnTripIds.length - 1] && (isBtwSameTz || isBtwSameName)) {
                     roundTrips.push({
                         startDate: tripList[i - 1].date,
                         endDate: trip.date,
@@ -321,14 +329,14 @@ angular.module('365daysApp').factory('analyzer', [
 
         //check if the first and last trip are one-way trip
         if (returnTripIds.indexOf(1) === -1) {
-            roundTrips.shift({
+            roundTrips.unshift({
                 startDate: null,
                 endDate: tripList[0].date,
                 destination: tripList[0].name.from,
                 offsetDiff: (tripList[0].offset.from - tripList[0].offset.to) / 3600
             });
         }
-        if (returnTripIds[returnTripIds.length - 1] !== tripList.length) {
+        if (returnTripIds[returnTripIds.length - 1] !== tripList.length - 1) {
             roundTrips.push({
                 startDate: tripList[tripList.length - 1].date,
                 endDate: null,
@@ -342,8 +350,11 @@ angular.module('365daysApp').factory('analyzer', [
         if (!_.isEmpty(tripList)) {
             userSetTrips = _.map(angular.copy(tripList), function (trip) {
                 return {
-                    startDateId: toDayIndex(trip.startDate.format('YYYYMMDD')),
-                    endDateId: toDayIndex(trip.endDate.format('YYYYMMDD')),
+                    startDateId: _.isNull(trip.startDate) ? -1 : toDayIndex(trip.startDate.format('YYYYMMDD')),
+                    //add one more day to indicate the ending moment of the day
+                    endDateId: _.isNull(trip.endDate) ?
+                        -1 :
+                        toDayIndex(angular.copy(trip.endDate).add(1, 'days').format('YYYYMMDD')),
                     destination: trip.destination,
                     offsetDiff: trip.offsetDiff
                 };

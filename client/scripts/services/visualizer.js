@@ -122,44 +122,68 @@ angular.module('365daysApp').factory('visualizer', [
 
     function drawTrips(g, trip, startDate, dayUnit) {
 
-        var x1s, x2s, x1e, x2e, y1s, y2s, y1e, y2e, tx, ty;
+        var x1s, x1e, x2s, x2e, y1s, y1e, y2s, y2e, tx, ty;
         if (options.orientation === 'landscape') {
-            x1s = dayUnit * trip.startDateId;
-            x2s = dayUnit * trip.startDateId;
-            x1e = dayUnit * trip.endDateId;
-            x2e = dayUnit * trip.endDateId;
+            if (trip.startDateId > -1) {
+                x1s = dayUnit * trip.startDateId;
+                x1e = dayUnit * trip.startDateId;
+            }
+            if (trip.endDateId > -1) {
+                x2s = dayUnit * trip.endDateId;
+                x2e = dayUnit * trip.endDateId;
+            }
+            if (_.isUndefined(x1s)) {
+                tx = x2e - 10;
+            } else if (_.isUndefined(x2s)) {
+                tx = x1s + 10;
+            } else {
+                tx = (x1s + x2s) / 2;
+            }
             y1s = dim.h;
-            y2s = dim.h + margin.gap;
-            y1e = dim.h;
+            y1e = dim.h + margin.gap;
+            y2s = dim.h;
             y2e = dim.h + margin.gap;
-            tx = (x1s + x1e) / 2;
             ty = dim.h + margin.gap;
         } else {
             x1s = dim.w;
-            x2s = dim.w + margin.gap;
-            x1e = dim.w;
+            x1e = dim.w + margin.gap;
+            x2s = dim.w;
             x2e = dim.w + margin.gap;
-            y1s = dayUnit * trip.startDateId;
-            y2s = dayUnit * trip.startDateId;
-            y1e = dayUnit * trip.endDateId;
-            y2e = dayUnit * trip.endDateId;
             tx = dim.w;
-            ty = (y1s + y1e) / 2
+            if (trip.startDateId > -1) {
+                y1s = dayUnit * trip.startDateId;
+                y1e = dayUnit * trip.startDateId;
+            }
+            if (trip.endDateId > -1) {
+                y2s = dayUnit * trip.endDateId;
+                y2e = dayUnit * trip.endDateId;
+            }
+            if (_.isUndefined(y1s)) {
+                ty = y2s - 10;
+            } else if (_.isUndefined(y2s)) {
+                ty = y1s + 10;
+            } else {
+                ty = (y1s + y2s) / 2;
+            }
         }
 
         //TODO: CSS for position
-        g.append('line')
-            .attr('x1', x1s)
-            .attr('x2', x2s)
-            .attr('y1', y1s)
-            .attr('y2', y2s)
-            .attr('class', 'stroke-1 stroke-black');
-        g.append('line')
-            .attr('x1', x1e)
-            .attr('x2', x2e)
-            .attr('y1', y1e)
-            .attr('y2', y2e)
-            .attr('class', 'stroke-1 stroke-black');
+        if (!_.isUndefined(x1s) && !_.isUndefined(y1s)) {
+            g.append('line')
+                .attr('x1', x1s)
+                .attr('x2', x1e)
+                .attr('y1', y1s)
+                .attr('y2', y1e)
+                .attr('class', 'stroke-1 stroke-black');
+        }
+        if (!_.isUndefined(x2s) && !_.isUndefined(y2s)) {
+            g.append('line')
+                .attr('x1', x2s)
+                .attr('x2', x2e)
+                .attr('y1', y2s)
+                .attr('y2', y2e)
+                .attr('class', 'stroke-1 stroke-black');
+        }
         g.append('text')
             .attr('x', tx)
             .attr('y', ty)
