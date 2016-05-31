@@ -1,3 +1,122 @@
+/* common setting */
+
+@border-thin: 1px solid #000;
+@border-thick: 4px solid #000;
+
+@red: #D0021B;
+
+.link {
+    cursor: pointer;
+}
+
+@font-size: 14;
+@em: @font-size * 1em;
+
+@media screen {
+    body {
+        font-size: @font-size / @em;
+    }
+}
+@media screen and (min-width: 768px) {
+    body {
+        font-size: (@font-size + 2) / @em;
+    }
+}
+@media screen and (min-width: 992px) {
+    body {
+        font-size: (@font-size + 3) / @em;
+    }
+}
+@media screen and (min-width: 1200px) {
+    body {
+        font-size: (@font-size + 4) / @em;
+    }
+}
+
+/* main */
+.main-top {
+    border-top: @border-thin;
+    border-bottom: @border-thick;
+    padding-top: 2em;
+    padding-bottom: 2em;
+}
+.main-title {
+    padding-top: 2em;
+    padding-bottom: 2em;
+    .number {
+        font-size: 1000%;
+        margin-right: -0.2em;
+    }
+    .days {
+        font-size: 600%;
+        vertical-align: top;
+        line-height: 1.65em;
+    }
+    .sign-in {
+        padding-left: 1em;
+        padding-right: 1em;
+        border: 4px solid @red;
+        color: @red;
+        height: 100%;
+        .link();
+    }
+    .sign-in:hover {
+        color: @white;
+        background-color: @red;
+    }
+    .checking, .forward{
+        color: #fff;
+        background-color: #000;
+        border: @border-thick;
+    }
+    .checking {
+        margin-top: 1em;
+        padding: 0.2em 1em;
+    }
+    .signed-in {
+        margin-top: 1.3em;
+        .already {
+            font-size: 18px;
+        }
+        .forward {
+            font-size: 18px;
+            padding: 0.2em 0.32em 0.2em 0.5em;
+            margin-left: 0.5em;
+            a {
+                color: #fff;
+                text-decoration: none;
+            }
+            a:hover {
+                color: #000;
+            }
+        }
+        .forward:hover {
+            background-color: #fff;
+        }
+    }
+}
+.main-bottom, .main-copyright {
+    .right, .left {
+        border-top: @border-thin;
+        padding-top: 1em;
+        padding-bottom: 1em;
+    }
+}
+.main-copyright {
+    .left {
+        p {
+            font-size: 12px;
+        }
+        a {
+            color: #000;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
 .wrapper {
     margin-top: 20px;
 }
@@ -125,6 +244,16 @@
     }
     .normal {
         border: 2px solid #fff;
+    }
+}
+
+/* bootstrap tweek */
+@media screen and (min-width: 768px) {
+    .row-no-padding > [class*="left"] {
+        padding-left: 0 !important;
+    }
+    .row-no-padding > [class*="right"] {
+        padding-right: 0 !important;
     }
 }
 

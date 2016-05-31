@@ -1,13 +1,44 @@
-<div class="jumbotron">
-    <h1>365 Days</h1>
-    <p>
-        Visualization of your home(s), work place(s), and other frequently visited <br/>
-        Powered by <a href="https://www.moves-app.com/" target="_blank">Moves</a>
-    </p>
-
-    <p ng-show="checkingValidCookies"> Checking if already signed in... </p>
-
-    <p ng-show="hasValidCookies">Already signed in <a class="btn btn-success" href="/#year">Go forward<span class="glyphicon glyphicon-ok"></span></a></p>
-
-    <p><a class="btn btn-lg btn-success" ng-click="authenticateMoves()">Sign with with Moves <span class="glyphicon glyphicon-ok"></span></a></p>
+<div class="row main-top">
+    <div class="col-sm-2"></div>
+    <div class="col-sm-12 col-md-10">
+        <h5> Make a visualization with your home(s), work place(s), and other frequently visited places. </h5>
+        <h5> Then print a poster of the visualization. </h5>
+        <h5> 365 Days is powered by Moves. </h5>
+    </div>
+</div>
+<div class="row main-title row-no-padding">
+    <div class="col-sm-7 left">
+        <span class="number"><strong> 365 </strong></span>
+        <span class="days"> days </span>
+    </div>
+    <div class="col-sm-5 right">
+        <div class="sign-in" ng-click="authenticateMoves()">
+            <h3><p class="text-right"><span class="glyphicon glyphicon-chevron-right"></span></p></h3>
+            <h3> Sign with with Moves </h3>
+        </div>
+        <div ng-show="checkingValidCookies" class="checking">
+            <h5> Checking if already signed in... </h5>
+        </div>
+        <div ng-show="hasValidCookies" class="signed-in">
+            <span class="already"> Already signed in </span>
+            <span class="forward">
+                <a href="#/year">Go forward <span class="glyphicon glyphicon-chevron-right"></span></a>
+            </span>
+        </div>
+    </div>
+</div>
+<div class="row row-no-padding main-bottom">
+    <div class="col-sm-2"></div>
+    <div class="col-sm-10 right">
+        <h5> How to create art with 365 days </h5>
+        <h5> Start using Moves </h5>
+        <div> picture comes here </div>
+    </div>
+</div>
+<div class="row row-no-padding main-copyright">
+    <div class="col-sm-2 left">
+        <p> (c) Tanyoung Kim </p>
+        <p><a href="http://www.twitter.com/tanykim" target="_blank"> @tanykim </a></p>
+        <p><a href="http://tany.kim" target="_blank"> http://tany.kim </a></p>
+    </div>
 </div>
